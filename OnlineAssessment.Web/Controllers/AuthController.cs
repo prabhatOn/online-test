@@ -23,73 +23,87 @@ namespace OnlineAssessment.Web.Controllers
             _config = config;
         }
 
-        // ✅ Register Endpoint - Using RegisterRequest DTO
+        // ✅ Register Endpoint
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (request == null || string.IsNullOrEmpty(request.Username) ||
-                string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password) ||
-                string.IsNullOrEmpty(request.Role))
+            if (request == null || 
+                string.IsNullOrWhiteSpace(request.Username) ||
+                string.IsNullOrWhiteSpace(request.Email) || 
+                string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.Role))
             {
-                return BadRequest(new { message = "All fields are required: Username, Email, Password, Role" });
+                return BadRequest(new { message = "All fields (Username, Email, Password, Role) are required." });
             }
 
-            if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+            if (await _context.Users.AnyAsync(u => u.Username.ToLower() == request.Username.ToLower()))
             {
-                return BadRequest(new { message = "Username already exists" });
+                return BadRequest(new { message = "Username already exists. Please choose a different one." });
             }
 
-            // Create new user object
+            // Hash the password securely
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
             var user = new User
             {
                 Username = request.Username,
                 Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password), // Hash the password
-                Role = request.Role
+                PasswordHash = hashedPassword,
+                Role = request.Role.ToUpper()  // Store roles in uppercase for consistency
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "User registered successfully" });
+            return Ok(new { message = "User registered successfully." });
         }
 
-        // ✅ Login Endpoint - Using Plain Password
+        // ✅ Login Endpoint
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (request == null || string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            if (request == null || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
             {
-                return BadRequest(new { message = "Username and Password are required" });
+                return BadRequest(new { message = "Username and Password are required." });
             }
 
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            // 🔹 Fetch user from the database (No need to check count first)
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == request.Username.ToLower());
+
             if (existingUser == null || !BCrypt.Net.BCrypt.Verify(request.Password, existingUser.PasswordHash))
             {
-                return Unauthorized(new { message = "Invalid credentials" });
+                return Unauthorized(new { message = "Invalid username or password." });
             }
 
-            // Ensure JWT Secret exists
-            var secret = _config.GetValue<string>("JWT:Secret");
-            if (string.IsNullOrEmpty(secret))
+            // 🔹 Validate JWT Secret Key
+            var jwtSecret = _config["JWT:Secret"];
+            if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 16)
             {
-                return StatusCode(500, new { message = "JWT Secret is missing in configuration" });
+                return StatusCode(500, new { message = "JWT Secret is invalid or missing. Ensure it is at least 16 characters long." });
             }
 
-            var key = Encoding.ASCII.GetBytes(secret);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenDescriptor = new SecurityTokenDescriptor
+            // 🔹 Generate JWT Token
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, existingUser.Username),
-                    new Claim(ClaimTypes.Role, existingUser.Role) // Include role in token
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(60),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
+                new Claim(ClaimTypes.Name, existingUser.Username),
+                new Claim(ClaimTypes.Role, existingUser.Role)  // Role-based authentication
             };
 
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(1),  // 🔹 Increased expiration time
+                Issuer = _config["JWT:Issuer"],
+                Audience = _config["JWT:Audience"],
+                SigningCredentials = credentials
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
+
             return Ok(new { token = tokenHandler.WriteToken(token) });
         }
     }
