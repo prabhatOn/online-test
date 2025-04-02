@@ -11,9 +11,13 @@ namespace OnlineAssessment.Web.Models
         public string Username { get; set; }
 
         [Required]
+        [EmailAddress]
+        public string Email { get; set; } // ✅ Add this line
+
+        [Required]
         public string PasswordHash { get; set; }
 
         [Required]
-        public string Role { get; set; } // Admin, User, Organization
+        public string Role { get; set; }
     }
 }

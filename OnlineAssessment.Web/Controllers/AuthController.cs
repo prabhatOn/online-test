@@ -23,29 +23,68 @@ namespace OnlineAssessment.Web.Controllers
             _config = config;
         }
 
+        // ✅ Register Endpoint - Using RegisterRequest DTO
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] User user)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
+            if (request == null || string.IsNullOrEmpty(request.Username) ||
+                string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password) ||
+                string.IsNullOrEmpty(request.Role))
+            {
+                return BadRequest(new { message = "All fields are required: Username, Email, Password, Role" });
+            }
+
+            if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+            {
+                return BadRequest(new { message = "Username already exists" });
+            }
+
+            // Create new user object
+            var user = new User
+            {
+                Username = request.Username,
+                Email = request.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password), // Hash the password
+                Role = request.Role
+            };
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
             return Ok(new { message = "User registered successfully" });
         }
 
+        // ✅ Login Endpoint - Using Plain Password
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] User user)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == user.Username);
-            if (existingUser == null || !BCrypt.Net.BCrypt.Verify(user.PasswordHash, existingUser.PasswordHash))
+            if (request == null || string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest(new { message = "Username and Password are required" });
+            }
+
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            if (existingUser == null || !BCrypt.Net.BCrypt.Verify(request.Password, existingUser.PasswordHash))
             {
                 return Unauthorized(new { message = "Invalid credentials" });
             }
 
+            // Ensure JWT Secret exists
+            var secret = _config.GetValue<string>("JWT:Secret");
+            if (string.IsNullOrEmpty(secret))
+            {
+                return StatusCode(500, new { message = "JWT Secret is missing in configuration" });
+            }
+
+            var key = Encoding.ASCII.GetBytes(secret);
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_config["JWT:Secret"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, existingUser.Username) }),
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.Name, existingUser.Username),
+                    new Claim(ClaimTypes.Role, existingUser.Role) // Include role in token
+                }),
                 Expires = DateTime.UtcNow.AddMinutes(60),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
