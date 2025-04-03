@@ -1,0 +1,85 @@
+@model OnlineAssessment.Web.Models.Test
+
+@{
+    ViewData["Title"] = "Take Test";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2>@Model.Title</h2>
+                    <p class="mb-0">Duration: @Model.DurationMinutes minutes</p>
+                </div>
+                <div class="card-body">
+                    <form id="testForm">
+                        @foreach (var question in Model.Questions)
+                        {
+                            <div class="mb-4">
+                                <h5>@question.Text</h5>
+                                @if (question.Type == QuestionType.MultipleChoice)
+                                {
+                                    @if (question.AnswerOptions != null)
+                                    {
+                                        foreach (var option in question.AnswerOptions)
+                                        {
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="question_@question.Id" value="@option.Id" required>
+                                                <label class="form-check-label">
+                                                    @option.Text
+                                                </label>
+                                            </div>
+                                        }
+                                    }
+                                }
+                                else if (question.Type == QuestionType.ShortAnswer)
+                                {
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" name="question_@question.Id" required>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Submit Test</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const answers = {};
+            
+            for (let [key, value] of formData.entries()) {
+                answers[key] = value;
+            }
+
+            fetch(`/api/tests/submit/${@Model.Id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(answers)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Test submitted successfully!');
+                    window.location.href = '/Test/Index';
+                } else {
+                    alert('Failed to submit test');
+                }
+            })
+            .catch(error => console.error('Error submitting test:', error));
+        });
+    </script>
+} 

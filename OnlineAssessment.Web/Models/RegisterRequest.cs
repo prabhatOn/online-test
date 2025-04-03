@@ -2,9 +2,9 @@ namespace OnlineAssessment.Web.Models
 {
     public class RegisterRequest
     {
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; } // Plain password input
-        public string Role { get; set; } // Role required
+        public required string Username { get; set; }
+        public required string Email { get; set; }
+        public required string Password { get; set; } // Plain password input
+        public required string Role { get; set; } // Role required
     }
 }

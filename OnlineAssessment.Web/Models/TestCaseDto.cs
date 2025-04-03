@@ -1,13 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace OnlineAssessment.Web.Models.DTOs
+namespace OnlineAssessment.Web.Models
 {
     public class TestCaseDto
     {
-        [Required]
-        public string Input { get; set; }
-
-        [Required]
-        public string ExpectedOutput { get; set; }
+        public required string Input { get; set; }
+        public required string ExpectedOutput { get; set; }
     }
 }

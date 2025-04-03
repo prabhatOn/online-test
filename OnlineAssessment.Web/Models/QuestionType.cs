@@ -1,5 +1,8 @@
-public enum QuestionType
+namespace OnlineAssessment.Web.Models
 {
-    MCQ,
-    Coding
+    public enum QuestionType
+    {
+        MultipleChoice = 0,
+        ShortAnswer = 1
+    }
 }

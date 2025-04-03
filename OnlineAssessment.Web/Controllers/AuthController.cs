@@ -10,9 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace OnlineAssessment.Web.Controllers
 {
-    [Route("api/auth")]
-    [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : Controller
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _config;
@@ -23,9 +21,24 @@ namespace OnlineAssessment.Web.Controllers
             _config = config;
         }
 
-        // ✅ Register Endpoint
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        // View action for registration page
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        // View action for login page
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        // API endpoint for registration
+        [HttpPost]
+        [Route("Auth/api/register")]
+        public async Task<IActionResult> RegisterApi([FromBody] RegisterRequest request)
         {
             if (request == null ||
                 string.IsNullOrWhiteSpace(request.Username) ||
@@ -55,7 +68,7 @@ namespace OnlineAssessment.Web.Controllers
                 Username = request.Username,
                 Email = request.Email,
                 PasswordHash = hashedPassword,
-                Role = userRole  // ✅ Store role as Enum
+                Role = userRole
             };
 
             _context.Users.Add(user);
@@ -64,8 +77,9 @@ namespace OnlineAssessment.Web.Controllers
             return Ok(new { message = "User registered successfully." });
         }
 
-        // ✅ Login Endpoint
-        [HttpPost("login")]
+        // API endpoint for login
+        [HttpPost]
+        [Route("Auth/login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
@@ -73,7 +87,6 @@ namespace OnlineAssessment.Web.Controllers
                 return BadRequest(new { message = "Username and Password are required." });
             }
 
-            // 🔹 Fetch user from the database
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == request.Username.ToLower());
 
             if (existingUser == null || !BCrypt.Net.BCrypt.Verify(request.Password, existingUser.PasswordHash))
@@ -81,27 +94,25 @@ namespace OnlineAssessment.Web.Controllers
                 return Unauthorized(new { message = "Invalid username or password." });
             }
 
-            // 🔹 Validate JWT Secret Key
             var jwtSecret = _config["JWT:Secret"];
-            if (string.IsNullOrEmpty(jwtSecret) || Encoding.UTF8.GetBytes(jwtSecret).Length < 32) // 🔹 HS256 requires at least 256 bits (32+ characters)
+            if (string.IsNullOrEmpty(jwtSecret) || Encoding.UTF8.GetBytes(jwtSecret).Length < 32)
             {
-                return StatusCode(500, new { message = "JWT Secret is invalid or too short. Ensure it is at least 32 characters long." });
+                return StatusCode(500, new { message = "JWT Secret is invalid or too short." });
             }
 
-            // 🔹 Generate JWT Token
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, existingUser.Username),
-                new Claim(ClaimTypes.Role, existingUser.Role.ToString())  // ✅ Convert enum to string
+                new Claim(ClaimTypes.Role, existingUser.Role.ToString())
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1),  // ✅ Token expiration set to 1 hour
+                Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = _config["JWT:Issuer"],
                 Audience = _config["JWT:Audience"],
                 SigningCredentials = credentials

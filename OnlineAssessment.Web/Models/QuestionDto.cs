@@ -1,16 +1,14 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace OnlineAssessment.Web.Models.DTOs
+namespace OnlineAssessment.Web.Models
 {
     public class QuestionDto
     {
-        [Required]
-        public string Text { get; set; }
-
-        [Required]
-        public int TestId { get; set; }
-
-        public List<TestCaseDto> TestCases { get; set; } = new List<TestCaseDto>();
+        public required string Text { get; set; }
+        public required QuestionType Type { get; set; }
+        public required int TestId { get; set; }
+        public List<AnswerOptionDto>? AnswerOptions { get; set; }
+        public List<TestCaseDto>? TestCases { get; set; }
     }
 }

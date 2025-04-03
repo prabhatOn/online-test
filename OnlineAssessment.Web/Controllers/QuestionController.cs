@@ -5,12 +5,13 @@ using OnlineAssessment.Web.Models.DTOs;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace OnlineAssessment.Web.Controllers
 {
     [Route("api/questions")]
     [ApiController]
-    public class QuestionController : ControllerBase
+    public class QuestionController : Controller
     {
         private readonly AppDbContext _context;
 
@@ -19,100 +20,58 @@ namespace OnlineAssessment.Web.Controllers
             _context = context;
         }
 
-        // ✅ Add a Coding Question (Fixed)
-        [HttpPost("add-coding")]
-        public async Task<IActionResult> AddCodingQuestion([FromBody] QuestionDto questionDto)
+        [HttpPost("create")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateQuestion([FromBody] QuestionDto questionDto)
         {
-            if (questionDto == null || string.IsNullOrWhiteSpace(questionDto.Text) || questionDto.TestId <= 0)
-            {
-                return BadRequest(new { message = "Invalid question data." });
-            }
+            if (string.IsNullOrWhiteSpace(questionDto.Text))
+                return BadRequest(new { message = "Question text is required" });
 
-            // ✅ Check if the test exists
-            var test = await _context.Tests.FindAsync(questionDto.TestId);
-            if (test == null)
-            {
-                return NotFound(new { message = "Test not found" });
-            }
-
-            // ✅ Create the Question entity
             var question = new Question
             {
                 Text = questionDto.Text,
-                TestId = questionDto.TestId,
-                Test = test,
-                Type = QuestionType.Coding,
-                TestCases = questionDto.TestCases?.Select(tc => new TestCase
-                {
-                    Input = tc.Input,
-                    ExpectedOutput = tc.ExpectedOutput
-                }).ToList() ?? new List<TestCase>()
+                Type = questionDto.Type,
+                TestId = questionDto.TestId
             };
 
-            if (!question.TestCases.Any())
+            if (questionDto.Type == QuestionType.MultipleChoice)
             {
-                return BadRequest(new { message = "Coding question must have at least one test case." });
-            }
+                if (questionDto.AnswerOptions == null || questionDto.AnswerOptions.Count < 2)
+                    return BadRequest(new { message = "Multiple choice questions require at least 2 answer options" });
 
-            _context.Questions.Add(question);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Coding question added successfully!", questionId = question.Id });
-        }
-
-        // ✅ Add an MCQ Question (Fixed)
-        [HttpPost("add-mcq")]
-        public async Task<IActionResult> AddMcqQuestion([FromBody] McqQuestionDto questionDto)
-        {
-            if (questionDto == null || string.IsNullOrWhiteSpace(questionDto.Text) || questionDto.TestId <= 0)
-            {
-                return BadRequest(new { message = "Invalid question data." });
-            }
-
-            var test = await _context.Tests.FindAsync(questionDto.TestId);
-            if (test == null)
-            {
-                return NotFound(new { message = "Test not found" });
-            }
-
-            var question = new Question
-            {
-                Text = questionDto.Text,
-                TestId = questionDto.TestId,
-                Test = test,
-                Type = QuestionType.MCQ,
-                AnswerOptions = questionDto.AnswerOptions?.Select(option => new AnswerOption
+                question.AnswerOptions = questionDto.AnswerOptions.Select(option => new AnswerOption
                 {
                     Text = option.Text,
                     IsCorrect = option.IsCorrect
-                }).ToList() ?? new List<AnswerOption>()
-            };
-
-            if (!question.AnswerOptions.Any())
+                }).ToList();
+            }
+            else if (questionDto.Type == QuestionType.ShortAnswer)
             {
-                return BadRequest(new { message = "MCQ must have at least one answer option." });
+                if (questionDto.TestCases == null || !questionDto.TestCases.Any())
+                    return BadRequest(new { message = "Short answer questions require at least one test case" });
+
+                question.TestCases = questionDto.TestCases.Select(testCase => new TestCase
+                {
+                    Input = testCase.Input,
+                    ExpectedOutput = testCase.ExpectedOutput
+                }).ToList();
             }
 
             _context.Questions.Add(question);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "MCQ question added successfully!", questionId = question.Id });
+            return Ok(new { message = "Question created successfully", question });
         }
 
-        // ✅ Get all questions for a test
         [HttpGet("test/{testId}")]
-        public async Task<IActionResult> GetQuestionsByTestId(int testId)
+        [Authorize]
+        public async Task<IActionResult> GetQuestionsByTest(int testId)
         {
             var questions = await _context.Questions
                 .Where(q => q.TestId == testId)
                 .Include(q => q.AnswerOptions)
                 .Include(q => q.TestCases)
                 .ToListAsync();
-
-            if (!questions.Any())
-            {
-                return NotFound(new { message = "No questions found for this test." });
-            }
 
             return Ok(questions);
         }

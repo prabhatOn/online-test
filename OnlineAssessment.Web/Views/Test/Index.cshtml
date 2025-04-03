@@ -1,0 +1,136 @@
+@{
+    ViewData["Title"] = "Tests";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Tests</h2>
+            
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Admin Actions</h4>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary" onclick="showCreateTestModal()">Create New Test</button>
+                    </div>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-header">
+                    <h4>Available Tests</h4>
+                </div>
+                <div class="card-body">
+                    <div id="testsList" class="list-group">
+                        <!-- Tests will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Test Modal -->
+<div class="modal fade" id="createTestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Test</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTestForm">
+                    <div class="mb-3">
+                        <label for="testTitle" class="form-label">Test Title</label>
+                        <input type="text" class="form-control" id="testTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="durationMinutes" class="form-label">Duration (minutes)</label>
+                        <input type="number" class="form-control" id="durationMinutes" required min="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="createTest()">Create Test</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let createTestModal;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            createTestModal = new bootstrap.Modal(document.getElementById('createTestModal'));
+            loadTests();
+        });
+
+        function showCreateTestModal() {
+            createTestModal.show();
+        }
+
+        function loadTests() {
+            fetch('/api/tests/all')
+                .then(response => response.json())
+                .then(tests => {
+                    const testsList = document.getElementById('testsList');
+                    testsList.innerHTML = '';
+
+                    tests.forEach(test => {
+                        const testItem = document.createElement('div');
+                        testItem.className = 'list-group-item';
+                        testItem.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">${test.title}</h5>
+                                    <small class="text-muted">Duration: ${test.durationMinutes} minutes</small>
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary btn-sm" onclick="startTest(${test.id})">Start Test</button>
+                                </div>
+                            </div>
+                        `;
+                        testsList.appendChild(testItem);
+                    });
+                })
+                .catch(error => console.error('Error loading tests:', error));
+        }
+
+        function createTest() {
+            const title = document.getElementById('testTitle').value;
+            const durationMinutes = document.getElementById('durationMinutes').value;
+
+            fetch('/api/tests/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify({
+                    title: title,
+                    durationMinutes: parseInt(durationMinutes)
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    createTestModal.hide();
+                    loadTests();
+                    document.getElementById('createTestForm').reset();
+                } else {
+                    alert('Failed to create test');
+                }
+            })
+            .catch(error => console.error('Error creating test:', error));
+        }
+
+        function startTest(testId) {
+            // Implement test starting logic
+            window.location.href = `/Test/Take/${testId}`;
+        }
+    </script>
+} 

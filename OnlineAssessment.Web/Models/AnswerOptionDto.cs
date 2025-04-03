@@ -1,13 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace OnlineAssessment.Web.Models.DTOs
+namespace OnlineAssessment.Web.Models
 {
     public class AnswerOptionDto
     {
-        [Required]
-        public string Text { get; set; }
-
-        [Required]
-        public bool IsCorrect { get; set; }
+        public required string Text { get; set; }
+        public required bool IsCorrect { get; set; }
     }
 }
