@@ -5,7 +5,7 @@
 namespace OnlineAssessment.Web.Migrations
 {
     /// <inheritdoc />
-    public partial class FixUserRoleEnum : Migration
+    public partial class AddTestCasesToQuestions : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

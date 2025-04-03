@@ -11,7 +11,8 @@ namespace OnlineAssessment.Web.Models
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Test> Tests { get; set; }
         public DbSet<Question> Questions { get; set; }
-
+        public DbSet<AnswerOption> AnswerOptions { get; set; }
+        public DbSet<TestCase> TestCases { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ✅ Store UserRole Enum as a string in the database

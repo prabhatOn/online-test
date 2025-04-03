@@ -12,8 +12,8 @@ using OnlineAssessment.Web.Models;
 namespace OnlineAssessment.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250402115002_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250403061929_RecreateOrganizationsTable")]
+    partial class RecreateOrganizationsTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,31 @@ namespace OnlineAssessment.Web.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("OnlineAssessment.Web.Models.AnswerOption", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("OptionText")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("AnswerOptions");
+                });
 
             modelBuilder.Entity("OnlineAssessment.Web.Models.Organization", b =>
                 {
@@ -54,15 +79,19 @@ namespace OnlineAssessment.Web.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Answer")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("TestId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TestId");
 
                     b.ToTable("Questions");
                 });
@@ -82,6 +111,9 @@ namespace OnlineAssessment.Web.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -91,7 +123,33 @@ namespace OnlineAssessment.Web.Migrations
                     b.ToTable("Tests");
                 });
 
-            modelBuilder.Entity("OnlineAssessment.Web.Models.User", b =>
+            modelBuilder.Entity("OnlineAssessment.Web.Models.TestCase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ExpectedOutput")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Input")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("TestCases");
+                });
+
+            modelBuilder.Entity("User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -118,6 +176,51 @@ namespace OnlineAssessment.Web.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("OnlineAssessment.Web.Models.AnswerOption", b =>
+                {
+                    b.HasOne("OnlineAssessment.Web.Models.Question", "Question")
+                        .WithMany("AnswerOptions")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("OnlineAssessment.Web.Models.Question", b =>
+                {
+                    b.HasOne("OnlineAssessment.Web.Models.Test", "Test")
+                        .WithMany("Questions")
+                        .HasForeignKey("TestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Test");
+                });
+
+            modelBuilder.Entity("OnlineAssessment.Web.Models.TestCase", b =>
+                {
+                    b.HasOne("OnlineAssessment.Web.Models.Question", "Question")
+                        .WithMany("TestCases")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("OnlineAssessment.Web.Models.Question", b =>
+                {
+                    b.Navigation("AnswerOptions");
+
+                    b.Navigation("TestCases");
+                });
+
+            modelBuilder.Entity("OnlineAssessment.Web.Models.Test", b =>
+                {
+                    b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618
         }
