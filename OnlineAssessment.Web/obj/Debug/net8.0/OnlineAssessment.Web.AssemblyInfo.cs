@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OnlineAssessment.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d46bf3082bd3c81452f3e0137a7dcfb3d8954452")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+15f812f7f3232066fbceaaf94f6547b23f83b59d")]
 [assembly: System.Reflection.AssemblyProductAttribute("OnlineAssessment.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OnlineAssessment.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

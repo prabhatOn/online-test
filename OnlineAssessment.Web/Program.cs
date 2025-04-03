@@ -49,7 +49,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // ✅ Add Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
 
 // ✅ Configure Swagger with JWT Support
 builder.Services.AddSwaggerGen(c =>
@@ -89,9 +89,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("AllowAll");  // Enable CORS globally
 app.UseAuthentication();  // Enable Authentication Middleware
 app.UseAuthorization();   // Enable Authorization Middleware
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllers();
 
