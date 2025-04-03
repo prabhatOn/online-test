@@ -26,44 +26,48 @@ namespace OnlineAssessment.Web.Controllers
                 return BadRequest(new { message = "Invalid TestId" });
             }
 
-            // ✅ Validate if the Test exists
+            // ✅ Fetch the Test from the database
             var test = await _context.Tests.FindAsync(question.TestId);
             if (test == null)
             {
                 return NotFound(new { message = "Test not found" });
             }
 
-            question.TestId = test.Id; // ✅ Ensure FK is correctly assigned
+            question.Test = test;
+            question.Type = QuestionType.MCQ; // ✅ Set type as MCQ
 
-            // ✅ Assign FK to AnswerOptions (Avoids validation errors)
+            if (question.AnswerOptions == null || !question.AnswerOptions.Any())
+            {
+                return BadRequest(new { message = "MCQ must have at least one answer option." });
+            }
+
             foreach (var option in question.AnswerOptions)
             {
-                option.Question = question;
+                option.Question = question; // ✅ Establish relationship
             }
 
             _context.Questions.Add(question);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "MCQ question added successfully!", question });
+            return Ok(new { message = "MCQ question added successfully!" });
         }
 
         // ✅ Add a Coding Question
         [HttpPost("add-coding")]
         public async Task<IActionResult> AddCodingQuestion([FromBody] Question question)
         {
-            if (question == null || question.TestId == 0 || question.TestCases == null || !question.TestCases.Any())
+            if (question == null || question.TestId <= 0 || question.TestCases == null || !question.TestCases.Any())
             {
                 return BadRequest(new { message = "Invalid coding question format" });
             }
 
-            // ✅ Validate if the Test exists
             var test = await _context.Tests.FindAsync(question.TestId);
             if (test == null)
             {
                 return NotFound(new { message = "Test not found" });
             }
 
-            question.TestId = test.Id;
+            question.Test = test;
             question.Type = QuestionType.Coding;
 
             foreach (var testCase in question.TestCases)
@@ -82,8 +86,8 @@ namespace OnlineAssessment.Web.Controllers
         {
             var questions = await _context.Questions
                 .Where(q => q.TestId == testId)
-                .Include(q => q.AnswerOptions) // ✅ Ensure AnswerOptions are loaded
-                .Include(q => q.TestCases) // ✅ Ensure TestCases are loaded
+                .Include(q => q.AnswerOptions)
+                .Include(q => q.TestCases)
                 .ToListAsync();
 
             if (questions == null || !questions.Any())

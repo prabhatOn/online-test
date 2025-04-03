@@ -1,26 +1,21 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+ using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using OnlineAssessment.Web.Models; 
 
-namespace OnlineAssessment.Web.Models
+
+public class Question
 {
-    public enum QuestionType
-    {
-        MCQ,
-        Coding
-    }
+    public int Id { get; set; }
+    public string Text { get; set; }
 
-    public class Question
-    {
-        [Key]
-        public int Id { get; set; }
-        public string Text { get; set; }
-        public QuestionType Type { get; set; }
-        public int TestId { get; set; }
+    public int TestId { get; set; } // ✅ Foreign key (Required)
 
-        [ForeignKey("TestId")]
-        public Test Test { get; set; }
+    [JsonIgnore] // ✅ Prevent circular reference in API response
+    public Test? Test { get; set; } // ✅ Navigation property
 
-        public List<AnswerOption>? AnswerOptions { get; set; }  // Only for MCQs
-        public List<TestCase>? TestCases { get; set; }  // Only for Coding questions
-    }
+    public QuestionType Type { get; set; } // ✅ Now correctly references the enum
+
+    public List<AnswerOption>? AnswerOptions { get; set; } = new(); // ✅ MCQ Options
+
+    public List<TestCase>? TestCases { get; set; } = new(); // ✅ Coding test cases
 }
