@@ -119,6 +119,11 @@ app.MapControllerRoute(
     pattern: "Test/{action}/{id?}",
     defaults: new { controller = "Test" });
 
+app.MapControllerRoute(
+    name: "test-upload",
+    pattern: "Test/upload-questions",
+    defaults: new { controller = "Test", action = "UploadQuestions" });
+
 app.MapControllers();
 
 app.Run();

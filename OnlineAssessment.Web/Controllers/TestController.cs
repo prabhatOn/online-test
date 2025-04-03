@@ -82,6 +82,137 @@ namespace OnlineAssessment.Web.Controllers
 
             return View(test);
         }
+
+        [HttpPost]
+        [Route("upload-questions")]
+        [Authorize(Roles = "Admin")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadQuestions([FromForm] IFormFile file, [FromForm] int testId)
+        {
+            try
+            {
+                if (file == null)
+                {
+                    return Json(new { success = false, message = "No file was uploaded" });
+                }
+
+                if (file.Length == 0)
+                {
+                    return Json(new { success = false, message = "The uploaded file is empty" });
+                }
+
+                if (!file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Json(new { success = false, message = "Only JSON files are allowed" });
+                }
+
+                if (file.Length > 5 * 1024 * 1024) // 5MB limit
+                {
+                    return Json(new { success = false, message = "File size exceeds 5MB limit" });
+                }
+
+                var test = await _context.Tests.FindAsync(testId);
+                if (test == null)
+                {
+                    return Json(new { success = false, message = "Test not found" });
+                }
+
+                string jsonContent;
+                using (var stream = file.OpenReadStream())
+                using (var reader = new StreamReader(stream))
+                {
+                    jsonContent = await reader.ReadToEndAsync();
+                }
+
+                if (string.IsNullOrWhiteSpace(jsonContent))
+                {
+                    return Json(new { success = false, message = "File is empty" });
+                }
+
+                var questions = System.Text.Json.JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent);
+
+                if (questions == null || !questions.Any())
+                {
+                    return Json(new { success = false, message = "Invalid JSON format or empty questions" });
+                }
+
+                foreach (var questionDto in questions)
+                {
+                    if (string.IsNullOrWhiteSpace(questionDto.Text))
+                    {
+                        return Json(new { success = false, message = "Question text cannot be empty" });
+                    }
+
+                    var question = new Question
+                    {
+                        Text = questionDto.Text,
+                        Type = questionDto.Type,
+                        TestId = testId
+                    };
+
+                    _context.Questions.Add(question);
+                    await _context.SaveChangesAsync();
+
+                    if (questionDto.Type == QuestionType.MultipleChoice)
+                    {
+                        if (questionDto.AnswerOptions == null || !questionDto.AnswerOptions.Any())
+                        {
+                            return Json(new { success = false, message = "Multiple choice questions must have answer options" });
+                        }
+
+                        foreach (var optionDto in questionDto.AnswerOptions)
+                        {
+                            if (string.IsNullOrWhiteSpace(optionDto.Text))
+                            {
+                                return Json(new { success = false, message = "Answer option text cannot be empty" });
+                            }
+
+                            var option = new AnswerOption
+                            {
+                                Text = optionDto.Text,
+                                IsCorrect = optionDto.IsCorrect,
+                                QuestionId = question.Id
+                            };
+                            _context.AnswerOptions.Add(option);
+                        }
+                    }
+                    else if (questionDto.Type == QuestionType.ShortAnswer)
+                    {
+                        if (questionDto.TestCases == null || !questionDto.TestCases.Any())
+                        {
+                            return Json(new { success = false, message = "Short answer questions must have test cases" });
+                        }
+
+                        foreach (var testCaseDto in questionDto.TestCases)
+                        {
+                            if (string.IsNullOrWhiteSpace(testCaseDto.Input) || string.IsNullOrWhiteSpace(testCaseDto.ExpectedOutput))
+                            {
+                                return Json(new { success = false, message = "Test case input and expected output cannot be empty" });
+                            }
+
+                            var testCase = new TestCase
+                            {
+                                Input = testCaseDto.Input,
+                                ExpectedOutput = testCaseDto.ExpectedOutput,
+                                QuestionId = question.Id
+                            };
+                            _context.TestCases.Add(testCase);
+                        }
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Questions uploaded successfully" });
+            }
+            catch (JsonException ex)
+            {
+                return Json(new { success = false, message = "Invalid JSON format: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error processing file: " + ex.Message });
+            }
+        }
     }
 
     [Route("api/[controller]")]
@@ -130,106 +261,6 @@ namespace OnlineAssessment.Web.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Error creating test: " + ex.Message });
-            }
-        }
-
-        // Upload questions from JSON file
-        [HttpPost("upload-questions")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UploadQuestions(IFormFile file, int testId)
-        {
-            if (file == null || file.Length == 0)
-                return BadRequest(new { message = "No file uploaded" });
-
-            if (file.ContentType != "application/json")
-                return BadRequest(new { message = "Only JSON files are allowed" });
-
-            if (file.Length > 5 * 1024 * 1024) // 5MB limit
-                return BadRequest(new { message = "File size exceeds 5MB limit" });
-
-            var test = await _context.Tests.FindAsync(testId);
-            if (test == null)
-                return NotFound(new { message = "Test not found" });
-
-            try
-            {
-                using var stream = file.OpenReadStream();
-                using var reader = new StreamReader(stream);
-                var jsonContent = await reader.ReadToEndAsync();
-
-                if (string.IsNullOrWhiteSpace(jsonContent))
-                    return BadRequest(new { message = "File is empty" });
-
-                var questions = System.Text.Json.JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent);
-
-                if (questions == null || !questions.Any())
-                    return BadRequest(new { message = "Invalid JSON format or empty questions" });
-
-                foreach (var questionDto in questions)
-                {
-                    if (string.IsNullOrWhiteSpace(questionDto.Text))
-                        return BadRequest(new { message = "Question text cannot be empty" });
-
-                    var question = new Question
-                    {
-                        Text = questionDto.Text,
-                        Type = questionDto.Type,
-                        TestId = testId
-                    };
-
-                    _context.Questions.Add(question);
-                    await _context.SaveChangesAsync();
-
-                    if (questionDto.Type == QuestionType.MultipleChoice)
-                    {
-                        if (questionDto.AnswerOptions == null || !questionDto.AnswerOptions.Any())
-                            return BadRequest(new { message = "Multiple choice questions must have answer options" });
-
-                        foreach (var optionDto in questionDto.AnswerOptions)
-                        {
-                            if (string.IsNullOrWhiteSpace(optionDto.Text))
-                                return BadRequest(new { message = "Answer option text cannot be empty" });
-
-                            var option = new AnswerOption
-                            {
-                                Text = optionDto.Text,
-                                IsCorrect = optionDto.IsCorrect,
-                                QuestionId = question.Id
-                            };
-                            _context.AnswerOptions.Add(option);
-                        }
-                    }
-                    else if (questionDto.Type == QuestionType.ShortAnswer)
-                    {
-                        if (questionDto.TestCases == null || !questionDto.TestCases.Any())
-                            return BadRequest(new { message = "Short answer questions must have test cases" });
-
-                        foreach (var testCaseDto in questionDto.TestCases)
-                        {
-                            if (string.IsNullOrWhiteSpace(testCaseDto.Input) || string.IsNullOrWhiteSpace(testCaseDto.ExpectedOutput))
-                                return BadRequest(new { message = "Test case input and expected output cannot be empty" });
-
-                            var testCase = new TestCase
-                            {
-                                Input = testCaseDto.Input,
-                                ExpectedOutput = testCaseDto.ExpectedOutput,
-                                QuestionId = question.Id
-                            };
-                            _context.TestCases.Add(testCase);
-                        }
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Questions uploaded successfully" });
-            }
-            catch (JsonException ex)
-            {
-                return BadRequest(new { message = "Invalid JSON format: " + ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = "Error processing file: " + ex.Message });
             }
         }
 
