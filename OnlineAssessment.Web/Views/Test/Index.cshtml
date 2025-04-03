@@ -111,14 +111,18 @@
             const durationMinutes = document.getElementById('durationMinutes').value;
 
             try {
-                const response = await fetch('/api/tests/create', {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/test/create', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         title: title,
-                        durationMinutes: parseInt(durationMinutes)
+                        durationMinutes: parseInt(durationMinutes),
+                        description: `Test created on ${new Date().toISOString()}`
                     })
                 });
 
@@ -130,7 +134,8 @@
                         window.location.reload();
                     }
                 } else {
-                    alert('Failed to create test. Please try again.');
+                    const errorData = await response.json();
+                    alert('Failed to create test: ' + (errorData.message || 'Please try again.'));
                 }
             } catch (error) {
                 console.error('Error creating test:', error);

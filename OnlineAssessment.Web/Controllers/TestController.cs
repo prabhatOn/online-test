@@ -79,6 +79,12 @@ namespace OnlineAssessment.Web.Controllers
             if (string.IsNullOrWhiteSpace(test.Title) || test.DurationMinutes <= 0)
                 return BadRequest(new { message = "Invalid test details" });
 
+            // Set a default description if none is provided
+            if (string.IsNullOrWhiteSpace(test.Description))
+            {
+                test.Description = $"Test created on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
+            }
+
             _context.Tests.Add(test);
             await _context.SaveChangesAsync();
             return Ok(new { message = "Test created successfully", test });
