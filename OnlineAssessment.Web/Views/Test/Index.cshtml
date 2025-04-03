@@ -111,12 +111,11 @@
             const durationMinutes = document.getElementById('durationMinutes').value;
 
             try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/test/create', {
+                const response = await fetch('/api/TestApi/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     credentials: 'include',
                     body: JSON.stringify({
@@ -126,20 +125,16 @@
                     })
                 });
 
+                const data = await response.json();
+
                 if (response.ok) {
-                    const data = await response.json();
-                    if (data) {
-                        alert('Test created successfully!');
-                        document.getElementById('createTestForm').reset();
-                        window.location.reload();
-                    }
+                    alert('Test created successfully!');
+                    window.location.href = data.redirectUrl;
                 } else {
-                    const errorData = await response.json();
-                    alert('Failed to create test: ' + (errorData.message || 'Please try again.'));
+                    throw new Error(data.message || 'Failed to create test');
                 }
             } catch (error) {
-                console.error('Error creating test:', error);
-                alert('An error occurred while creating the test');
+                alert('Error: ' + error.message);
             }
         }
     </script>

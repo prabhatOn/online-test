@@ -109,9 +109,15 @@ app.UseCors("AllowAll");  // Enable CORS globally
 app.UseAuthentication();  // Enable Authentication Middleware
 app.UseAuthorization();   // Enable Authorization Middleware
 
+// Configure routes
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+    name: "test",
+    pattern: "Test/{action}/{id?}",
+    defaults: new { controller = "Test" });
 
 app.MapControllers();
 

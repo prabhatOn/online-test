@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Text.Json;
 
 namespace OnlineAssessment.Web.Controllers
 {
@@ -38,6 +41,28 @@ namespace OnlineAssessment.Web.Controllers
                 ViewBag.IsAdmin = false;
                 ViewBag.Username = "Guest";
                 return View(new List<Test>());
+            }
+        }
+
+        // View action for uploading questions
+        [HttpGet]
+        [Route("Test/upload-questions/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UploadQuestions(int id)
+        {
+            try
+            {
+                var test = await _context.Tests.FindAsync(id);
+                if (test == null)
+                {
+                    return NotFound();
+                }
+
+                return View("UploadQuestions", test);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error loading test: " + ex.Message });
             }
         }
 
@@ -76,18 +101,136 @@ namespace OnlineAssessment.Web.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTest([FromBody] Test test)
         {
-            if (string.IsNullOrWhiteSpace(test.Title) || test.DurationMinutes <= 0)
-                return BadRequest(new { message = "Invalid test details" });
-
-            // Set a default description if none is provided
-            if (string.IsNullOrWhiteSpace(test.Description))
+            try
             {
-                test.Description = $"Test created on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
-            }
+                if (string.IsNullOrWhiteSpace(test.Title))
+                    return BadRequest(new { message = "Test title is required" });
 
-            _context.Tests.Add(test);
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Test created successfully", test });
+                if (test.DurationMinutes <= 0 || test.DurationMinutes > 1440)
+                    return BadRequest(new { message = "Duration must be between 1 and 1440 minutes" });
+
+                // Set a default description if none is provided
+                if (string.IsNullOrWhiteSpace(test.Description))
+                {
+                    test.Description = $"Test created on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
+                }
+
+                // Set CreatedAt to current time
+                test.CreatedAt = DateTime.UtcNow;
+
+                _context.Tests.Add(test);
+                await _context.SaveChangesAsync();
+                
+                return Ok(new { 
+                    message = "Test created successfully", 
+                    test,
+                    redirectUrl = $"/Test/upload-questions/{test.Id}"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error creating test: " + ex.Message });
+            }
+        }
+
+        // Upload questions from JSON file
+        [HttpPost("upload-questions")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UploadQuestions(IFormFile file, int testId)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file uploaded" });
+
+            if (file.ContentType != "application/json")
+                return BadRequest(new { message = "Only JSON files are allowed" });
+
+            if (file.Length > 5 * 1024 * 1024) // 5MB limit
+                return BadRequest(new { message = "File size exceeds 5MB limit" });
+
+            var test = await _context.Tests.FindAsync(testId);
+            if (test == null)
+                return NotFound(new { message = "Test not found" });
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                using var reader = new StreamReader(stream);
+                var jsonContent = await reader.ReadToEndAsync();
+
+                if (string.IsNullOrWhiteSpace(jsonContent))
+                    return BadRequest(new { message = "File is empty" });
+
+                var questions = System.Text.Json.JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent);
+
+                if (questions == null || !questions.Any())
+                    return BadRequest(new { message = "Invalid JSON format or empty questions" });
+
+                foreach (var questionDto in questions)
+                {
+                    if (string.IsNullOrWhiteSpace(questionDto.Text))
+                        return BadRequest(new { message = "Question text cannot be empty" });
+
+                    var question = new Question
+                    {
+                        Text = questionDto.Text,
+                        Type = questionDto.Type,
+                        TestId = testId
+                    };
+
+                    _context.Questions.Add(question);
+                    await _context.SaveChangesAsync();
+
+                    if (questionDto.Type == QuestionType.MultipleChoice)
+                    {
+                        if (questionDto.AnswerOptions == null || !questionDto.AnswerOptions.Any())
+                            return BadRequest(new { message = "Multiple choice questions must have answer options" });
+
+                        foreach (var optionDto in questionDto.AnswerOptions)
+                        {
+                            if (string.IsNullOrWhiteSpace(optionDto.Text))
+                                return BadRequest(new { message = "Answer option text cannot be empty" });
+
+                            var option = new AnswerOption
+                            {
+                                Text = optionDto.Text,
+                                IsCorrect = optionDto.IsCorrect,
+                                QuestionId = question.Id
+                            };
+                            _context.AnswerOptions.Add(option);
+                        }
+                    }
+                    else if (questionDto.Type == QuestionType.ShortAnswer)
+                    {
+                        if (questionDto.TestCases == null || !questionDto.TestCases.Any())
+                            return BadRequest(new { message = "Short answer questions must have test cases" });
+
+                        foreach (var testCaseDto in questionDto.TestCases)
+                        {
+                            if (string.IsNullOrWhiteSpace(testCaseDto.Input) || string.IsNullOrWhiteSpace(testCaseDto.ExpectedOutput))
+                                return BadRequest(new { message = "Test case input and expected output cannot be empty" });
+
+                            var testCase = new TestCase
+                            {
+                                Input = testCaseDto.Input,
+                                ExpectedOutput = testCaseDto.ExpectedOutput,
+                                QuestionId = question.Id
+                            };
+                            _context.TestCases.Add(testCase);
+                        }
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Questions uploaded successfully" });
+            }
+            catch (JsonException ex)
+            {
+                return BadRequest(new { message = "Invalid JSON format: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error processing file: " + ex.Message });
+            }
         }
 
         // Retrieve all tests

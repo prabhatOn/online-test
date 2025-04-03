@@ -1,0 +1,66 @@
+@model OnlineAssessment.Web.Models.Test
+
+@{
+    ViewData["Title"] = "Create Test";
+}
+
+<div class="container mt-4">
+    <h2>Create New Test</h2>
+    
+    <div class="card mt-4">
+        <div class="card-body">
+            <form id="createTestForm">
+                <div class="form-group mb-3">
+                    <label for="title">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="duration">Duration (minutes)</label>
+                    <input type="number" class="form-control" id="duration" name="durationMinutes" min="1" max="1440" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Create Test</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('createTestForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                durationMinutes: parseInt(document.getElementById('duration').value)
+            };
+            
+            try {
+                const response = await fetch('/api/TestApi/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert(data.message || 'Error creating test');
+                }
+            } catch (error) {
+                alert('Error creating test: ' + error.message);
+            }
+        });
+    </script>
+} 
