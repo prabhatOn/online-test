@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using OnlineAssessment.Web.Models;  // Add this line
+using OnlineAssessment.Web.Models;
 
 namespace OnlineAssessment.Web.Models
 {
@@ -11,5 +11,15 @@ namespace OnlineAssessment.Web.Models
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Test> Tests { get; set; }
         public DbSet<Question> Questions { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // ✅ Store UserRole Enum as a string in the database
+            modelBuilder.Entity<User>()
+                .Property(u => u.Role)
+                .HasConversion<string>();
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

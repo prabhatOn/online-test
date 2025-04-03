@@ -27,9 +27,9 @@ namespace OnlineAssessment.Web.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (request == null || 
+            if (request == null ||
                 string.IsNullOrWhiteSpace(request.Username) ||
-                string.IsNullOrWhiteSpace(request.Email) || 
+                string.IsNullOrWhiteSpace(request.Email) ||
                 string.IsNullOrWhiteSpace(request.Password) ||
                 string.IsNullOrWhiteSpace(request.Role))
             {
@@ -41,6 +41,12 @@ namespace OnlineAssessment.Web.Controllers
                 return BadRequest(new { message = "Username already exists. Please choose a different one." });
             }
 
+            // Validate role and convert to Enum
+            if (!Enum.TryParse<UserRole>(request.Role, true, out var userRole))
+            {
+                return BadRequest(new { message = "Invalid role provided. Allowed values: Admin, Evaluator, Candidate." });
+            }
+
             // Hash the password securely
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
@@ -49,7 +55,7 @@ namespace OnlineAssessment.Web.Controllers
                 Username = request.Username,
                 Email = request.Email,
                 PasswordHash = hashedPassword,
-                Role = request.Role.ToUpper()  // Store roles in uppercase for consistency
+                Role = userRole  // ✅ Store role as Enum
             };
 
             _context.Users.Add(user);
@@ -67,7 +73,7 @@ namespace OnlineAssessment.Web.Controllers
                 return BadRequest(new { message = "Username and Password are required." });
             }
 
-            // 🔹 Fetch user from the database (No need to check count first)
+            // 🔹 Fetch user from the database
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == request.Username.ToLower());
 
             if (existingUser == null || !BCrypt.Net.BCrypt.Verify(request.Password, existingUser.PasswordHash))
@@ -77,9 +83,9 @@ namespace OnlineAssessment.Web.Controllers
 
             // 🔹 Validate JWT Secret Key
             var jwtSecret = _config["JWT:Secret"];
-            if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 16)
+            if (string.IsNullOrEmpty(jwtSecret) || Encoding.UTF8.GetBytes(jwtSecret).Length < 32) // 🔹 HS256 requires at least 256 bits (32+ characters)
             {
-                return StatusCode(500, new { message = "JWT Secret is invalid or missing. Ensure it is at least 16 characters long." });
+                return StatusCode(500, new { message = "JWT Secret is invalid or too short. Ensure it is at least 32 characters long." });
             }
 
             // 🔹 Generate JWT Token
@@ -89,13 +95,13 @@ namespace OnlineAssessment.Web.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, existingUser.Username),
-                new Claim(ClaimTypes.Role, existingUser.Role)  // Role-based authentication
+                new Claim(ClaimTypes.Role, existingUser.Role.ToString())  // ✅ Convert enum to string
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1),  // 🔹 Increased expiration time
+                Expires = DateTime.UtcNow.AddHours(1),  // ✅ Token expiration set to 1 hour
                 Issuer = _config["JWT:Issuer"],
                 Audience = _config["JWT:Audience"],
                 SigningCredentials = credentials

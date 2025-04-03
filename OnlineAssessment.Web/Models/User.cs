@@ -1,23 +1,15 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace OnlineAssessment.Web.Models
+public enum UserRole
 {
-    public class User
-    {
-        [Key]
-        public int Id { get; set; }
+    Admin,
+    Evaluator,
+    Candidate
+}
 
-        [Required]
-        public string Username { get; set; }
-
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } // ✅ Add this line
-
-        [Required]
-        public string PasswordHash { get; set; }
-
-        [Required]
-        public string Role { get; set; }
-    }
+public class User
+{
+    public int Id { get; set; }
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public string PasswordHash { get; set; }
+    public UserRole Role { get; set; }  // ✅ Enum instead of string
 }
