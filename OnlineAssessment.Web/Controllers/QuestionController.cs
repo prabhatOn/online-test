@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineAssessment.Web.Models;
+using OnlineAssessment.Web.Models.DTOs;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -17,70 +19,87 @@ namespace OnlineAssessment.Web.Controllers
             _context = context;
         }
 
-        // ✅ Add an MCQ Question
-        [HttpPost("add-mcq")]
-        public async Task<IActionResult> AddMcqQuestion([FromBody] Question question)
+        // ✅ Add a Coding Question (Fixed)
+        [HttpPost("add-coding")]
+        public async Task<IActionResult> AddCodingQuestion([FromBody] QuestionDto questionDto)
         {
-            if (question == null || question.TestId <= 0)
+            if (questionDto == null || string.IsNullOrWhiteSpace(questionDto.Text) || questionDto.TestId <= 0)
             {
-                return BadRequest(new { message = "Invalid TestId" });
+                return BadRequest(new { message = "Invalid question data." });
             }
 
-            // ✅ Fetch the Test from the database
-            var test = await _context.Tests.FindAsync(question.TestId);
+            // ✅ Check if the test exists
+            var test = await _context.Tests.FindAsync(questionDto.TestId);
             if (test == null)
             {
                 return NotFound(new { message = "Test not found" });
             }
 
-            question.Test = test;
-            question.Type = QuestionType.MCQ; // ✅ Set type as MCQ
+            // ✅ Create the Question entity
+            var question = new Question
+            {
+                Text = questionDto.Text,
+                TestId = questionDto.TestId,
+                Test = test,
+                Type = QuestionType.Coding,
+                TestCases = questionDto.TestCases?.Select(tc => new TestCase
+                {
+                    Input = tc.Input,
+                    ExpectedOutput = tc.ExpectedOutput
+                }).ToList() ?? new List<TestCase>()
+            };
 
-            if (question.AnswerOptions == null || !question.AnswerOptions.Any())
+            if (!question.TestCases.Any())
+            {
+                return BadRequest(new { message = "Coding question must have at least one test case." });
+            }
+
+            _context.Questions.Add(question);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Coding question added successfully!", questionId = question.Id });
+        }
+
+        // ✅ Add an MCQ Question (Fixed)
+        [HttpPost("add-mcq")]
+        public async Task<IActionResult> AddMcqQuestion([FromBody] McqQuestionDto questionDto)
+        {
+            if (questionDto == null || string.IsNullOrWhiteSpace(questionDto.Text) || questionDto.TestId <= 0)
+            {
+                return BadRequest(new { message = "Invalid question data." });
+            }
+
+            var test = await _context.Tests.FindAsync(questionDto.TestId);
+            if (test == null)
+            {
+                return NotFound(new { message = "Test not found" });
+            }
+
+            var question = new Question
+            {
+                Text = questionDto.Text,
+                TestId = questionDto.TestId,
+                Test = test,
+                Type = QuestionType.MCQ,
+                AnswerOptions = questionDto.AnswerOptions?.Select(option => new AnswerOption
+                {
+                    Text = option.Text,
+                    IsCorrect = option.IsCorrect
+                }).ToList() ?? new List<AnswerOption>()
+            };
+
+            if (!question.AnswerOptions.Any())
             {
                 return BadRequest(new { message = "MCQ must have at least one answer option." });
             }
 
-            foreach (var option in question.AnswerOptions)
-            {
-                option.Question = question; // ✅ Establish relationship
-            }
-
             _context.Questions.Add(question);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "MCQ question added successfully!" });
+            return Ok(new { message = "MCQ question added successfully!", questionId = question.Id });
         }
 
-        // ✅ Add a Coding Question
-        [HttpPost("add-coding")]
-        public async Task<IActionResult> AddCodingQuestion([FromBody] Question question)
-        {
-            if (question == null || question.TestId <= 0 || question.TestCases == null || !question.TestCases.Any())
-            {
-                return BadRequest(new { message = "Invalid coding question format" });
-            }
-
-            var test = await _context.Tests.FindAsync(question.TestId);
-            if (test == null)
-            {
-                return NotFound(new { message = "Test not found" });
-            }
-
-            question.Test = test;
-            question.Type = QuestionType.Coding;
-
-            foreach (var testCase in question.TestCases)
-            {
-                testCase.Question = question; // ✅ Ensure relationship
-            }
-
-            _context.Questions.Add(question);
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Coding question added successfully!", question });
-        }
-
-        // ✅ Retrieve all questions for a test
+        // ✅ Get all questions for a test
         [HttpGet("test/{testId}")]
         public async Task<IActionResult> GetQuestionsByTestId(int testId)
         {
@@ -90,15 +109,15 @@ namespace OnlineAssessment.Web.Controllers
                 .Include(q => q.TestCases)
                 .ToListAsync();
 
-            if (questions == null || !questions.Any())
+            if (!questions.Any())
             {
-                return NotFound(new { message = "No questions found for this test" });
+                return NotFound(new { message = "No questions found for this test." });
             }
 
             return Ok(questions);
         }
 
-        // ✅ Retrieve a single question by ID
+        // ✅ Get a single question by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetQuestionById(int id)
         {
@@ -109,7 +128,7 @@ namespace OnlineAssessment.Web.Controllers
 
             if (question == null)
             {
-                return NotFound(new { message = "Question not found" });
+                return NotFound(new { message = "Question not found." });
             }
 
             return Ok(question);
@@ -126,7 +145,7 @@ namespace OnlineAssessment.Web.Controllers
 
             if (question == null)
             {
-                return NotFound(new { message = "Question not found" });
+                return NotFound(new { message = "Question not found." });
             }
 
             _context.Questions.Remove(question);

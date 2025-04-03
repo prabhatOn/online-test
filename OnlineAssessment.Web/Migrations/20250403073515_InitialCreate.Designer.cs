@@ -12,8 +12,8 @@ using OnlineAssessment.Web.Models;
 namespace OnlineAssessment.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250403061929_RecreateOrganizationsTable")]
-    partial class RecreateOrganizationsTable
+    [Migration("20250403073515_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -71,31 +71,6 @@ namespace OnlineAssessment.Web.Migrations
                     b.ToTable("Organizations");
                 });
 
-            modelBuilder.Entity("OnlineAssessment.Web.Models.Question", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("TestId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TestId");
-
-                    b.ToTable("Questions");
-                });
-
             modelBuilder.Entity("OnlineAssessment.Web.Models.Test", b =>
                 {
                     b.Property<int>("Id")
@@ -149,6 +124,31 @@ namespace OnlineAssessment.Web.Migrations
                     b.ToTable("TestCases");
                 });
 
+            modelBuilder.Entity("Question", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("TestId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TestId");
+
+                    b.ToTable("Questions");
+                });
+
             modelBuilder.Entity("User", b =>
                 {
                     b.Property<int>("Id")
@@ -180,7 +180,7 @@ namespace OnlineAssessment.Web.Migrations
 
             modelBuilder.Entity("OnlineAssessment.Web.Models.AnswerOption", b =>
                 {
-                    b.HasOne("OnlineAssessment.Web.Models.Question", "Question")
+                    b.HasOne("Question", "Question")
                         .WithMany("AnswerOptions")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -189,7 +189,18 @@ namespace OnlineAssessment.Web.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("OnlineAssessment.Web.Models.Question", b =>
+            modelBuilder.Entity("OnlineAssessment.Web.Models.TestCase", b =>
+                {
+                    b.HasOne("Question", "Question")
+                        .WithMany("TestCases")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("Question", b =>
                 {
                     b.HasOne("OnlineAssessment.Web.Models.Test", "Test")
                         .WithMany("Questions")
@@ -200,27 +211,16 @@ namespace OnlineAssessment.Web.Migrations
                     b.Navigation("Test");
                 });
 
-            modelBuilder.Entity("OnlineAssessment.Web.Models.TestCase", b =>
+            modelBuilder.Entity("OnlineAssessment.Web.Models.Test", b =>
                 {
-                    b.HasOne("OnlineAssessment.Web.Models.Question", "Question")
-                        .WithMany("TestCases")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Question");
+                    b.Navigation("Questions");
                 });
 
-            modelBuilder.Entity("OnlineAssessment.Web.Models.Question", b =>
+            modelBuilder.Entity("Question", b =>
                 {
                     b.Navigation("AnswerOptions");
 
                     b.Navigation("TestCases");
-                });
-
-            modelBuilder.Entity("OnlineAssessment.Web.Models.Test", b =>
-                {
-                    b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618
         }
