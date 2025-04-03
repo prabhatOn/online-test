@@ -96,29 +96,12 @@
 
 @section Scripts {
     <script>
-        // Function to get the token from localStorage
-        function getToken() {
-            return localStorage.getItem('token');
-        }
-
-        // Function to check if user is authenticated
-        function checkAuth() {
-            const token = getToken();
-            if (!token) {
-                window.location.href = '/Auth/Login';
-                return false;
-            }
-            return true;
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
             const createTestForm = document.getElementById('createTestForm');
             if (createTestForm) {
                 createTestForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    if (checkAuth()) {
-                        createTest();
-                    }
+                    createTest();
                 });
             }
         });
@@ -131,8 +114,7 @@
                 const response = await fetch('/api/tests/create', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + getToken()
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         title: title,

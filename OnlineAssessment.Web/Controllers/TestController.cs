@@ -32,7 +32,7 @@ namespace OnlineAssessment.Web.Controllers
                 var tests = await _context.Tests.ToListAsync();
                 return View(tests);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // If there's an error, still show the page with empty tests
                 ViewBag.IsAdmin = false;
@@ -43,6 +43,7 @@ namespace OnlineAssessment.Web.Controllers
 
         // View action for taking a test
         [HttpGet("take/{id}")]
+        [Authorize]
         public async Task<IActionResult> Take(int id)
         {
             var test = await _context.Tests
@@ -60,7 +61,7 @@ namespace OnlineAssessment.Web.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize]
     public class TestApiController : ControllerBase
     {
         private readonly AppDbContext _context;

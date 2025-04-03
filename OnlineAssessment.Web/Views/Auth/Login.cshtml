@@ -45,11 +45,12 @@
             };
 
             try {
-                const response = await fetch('http://localhost:5057/Auth/login', {
+                const response = await fetch('/Auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify(formData)
                 });
 
