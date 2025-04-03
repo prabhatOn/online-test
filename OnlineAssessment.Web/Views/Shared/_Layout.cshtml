@@ -64,9 +64,26 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = '/Auth/Login';
+        async function logout() {
+            try {
+                const response = await fetch('/Auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    // Clear local storage
+                    localStorage.removeItem('token');
+                    // Force a full page reload to clear any cached authentication state
+                    window.location.href = '/Auth/Login';
+                    window.location.reload(true);
+                } else {
+                    alert('Failed to logout. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+                alert('An error occurred during logout. Please try again.');
+            }
         }
     </script>
     @await RenderSectionAsync("Scripts", required: false)

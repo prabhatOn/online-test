@@ -144,8 +144,17 @@ namespace OnlineAssessment.Web.Controllers
         [Route("Auth/logout")]
         public async Task<IActionResult> Logout()
         {
+            // Clear all authentication cookies
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok(new { message = "Logged out successfully" });
+            
+            // Clear any existing cookies
+            foreach (var cookie in Request.Cookies.Keys)
+            {
+                Response.Cookies.Delete(cookie);
+            }
+
+            // Return a redirect response
+            return RedirectToAction("Login", "Auth");
         }
     }
 }
