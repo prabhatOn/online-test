@@ -58,7 +58,8 @@
                     // Store the token in localStorage
                     localStorage.setItem('token', data.token);
                     alert('Login successful!');
-                    window.location.href = '/Home/Index'; // Redirect to home page after successful login
+                    // Redirect to test page instead of home page
+                    window.location.href = '/Test';
                 } else {
                     const errorData = await response.json();
                     alert('Login failed: ' + (errorData.message || 'Unknown error'));

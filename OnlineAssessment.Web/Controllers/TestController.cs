@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using OnlineAssessment.Web.Models;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace OnlineAssessment.Web.Controllers
 {
-    [Route("api/tests")]
-    [ApiController]
     public class TestController : Controller
     {
         private readonly AppDbContext _context;
@@ -19,15 +19,30 @@ namespace OnlineAssessment.Web.Controllers
 
         // View action for test list page
         [HttpGet]
-        [Authorize]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            try
+            {
+                // Get user role from claims
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+                ViewBag.IsAdmin = userRole == "Admin";
+                ViewBag.Username = User.Identity?.Name ?? "Guest";
+
+                // Get all tests from database
+                var tests = await _context.Tests.ToListAsync();
+                return View(tests);
+            }
+            catch (Exception ex)
+            {
+                // If there's an error, still show the page with empty tests
+                ViewBag.IsAdmin = false;
+                ViewBag.Username = "Guest";
+                return View(new List<Test>());
+            }
         }
 
         // View action for taking a test
         [HttpGet("take/{id}")]
-        [Authorize]
         public async Task<IActionResult> Take(int id)
         {
             var test = await _context.Tests
@@ -41,8 +56,21 @@ namespace OnlineAssessment.Web.Controllers
 
             return View(test);
         }
+    }
 
-        // ✅ Create a new test
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public class TestApiController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+
+        public TestApiController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        // Create a new test
         [HttpPost("create")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTest([FromBody] Test test)
@@ -55,9 +83,8 @@ namespace OnlineAssessment.Web.Controllers
             return Ok(new { message = "Test created successfully", test });
         }
 
-        // ✅ Retrieve all tests
+        // Retrieve all tests
         [HttpGet("all")]
-        [Authorize]
         public async Task<IActionResult> GetAllTests()
         {
             var tests = await _context.Tests.ToListAsync();
