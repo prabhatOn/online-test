@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OnlineAssessment.Web.Models
 {
+    [Table("testresult")]
     public class TestResult
     {
         [Key]
