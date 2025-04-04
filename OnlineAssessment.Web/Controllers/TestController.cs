@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
+using System.ComponentModel.DataAnnotations;
 
 namespace OnlineAssessment.Web.Controllers
 {
@@ -377,6 +378,141 @@ namespace OnlineAssessment.Web.Controllers
 
             return View(result);
         }
+
+        [HttpGet]
+        [Route("Test/upload-coding-questions/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UploadCodingQuestions(int id)
+        {
+            try
+            {
+                var test = await _context.Tests.FindAsync(id);
+                if (test == null)
+                {
+                    return NotFound();
+                }
+
+                return View("UploadCodingQuestions", test);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error loading test: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("Test/upload-coding-questions")]
+        [Authorize(Roles = "Admin")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadCodingQuestions([FromForm] IFormFile file, [FromForm] int testId)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return Json(new { success = false, message = "No file uploaded or file is empty" });
+                }
+
+                if (!file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Json(new { success = false, message = "Only JSON files are allowed" });
+                }
+
+                if (file.Length > 5 * 1024 * 1024) // 5MB limit
+                {
+                    return Json(new { success = false, message = "File size exceeds 5MB limit" });
+                }
+
+                var test = await _context.Tests.FindAsync(testId);
+                if (test == null)
+                {
+                    return Json(new { success = false, message = "Test not found" });
+                }
+
+                // Save file locally
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // Save the file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Read and process the file
+                string jsonContent;
+                using (var reader = new StreamReader(file.OpenReadStream()))
+                {
+                    jsonContent = await reader.ReadToEndAsync();
+                }
+
+                var questions = JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent);
+                if (questions == null || !questions.Any())
+                {
+                    return Json(new { success = false, message = "Invalid JSON format or empty questions" });
+                }
+
+                foreach (var questionDto in questions)
+                {
+                    if (string.IsNullOrWhiteSpace(questionDto.Text))
+                    {
+                        return Json(new { success = false, message = "Question text cannot be empty" });
+                    }
+
+                    if (questionDto.Type != QuestionType.ShortAnswer)
+                    {
+                        return Json(new { success = false, message = "All questions must be of type ShortAnswer (1) for coding questions" });
+                    }
+
+                    if (questionDto.TestCases == null || !questionDto.TestCases.Any())
+                    {
+                        return Json(new { success = false, message = "Coding questions must have at least one test case" });
+                    }
+
+                    var question = new Question
+                    {
+                        Text = questionDto.Text,
+                        Type = questionDto.Type,
+                        TestId = testId
+                    };
+
+                    _context.Questions.Add(question);
+                    await _context.SaveChangesAsync();
+
+                    foreach (var testCaseDto in questionDto.TestCases)
+                    {
+                        if (string.IsNullOrWhiteSpace(testCaseDto.Input) || string.IsNullOrWhiteSpace(testCaseDto.ExpectedOutput))
+                        {
+                            return Json(new { success = false, message = "Test case input and expected output cannot be empty" });
+                        }
+
+                        _context.TestCases.Add(new TestCase
+                        {
+                            Input = testCaseDto.Input,
+                            ExpectedOutput = testCaseDto.ExpectedOutput,
+                            QuestionId = question.Id
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Coding questions uploaded and saved successfully" });
+            }
+            catch (JsonException ex)
+            {
+                return Json(new { success = false, message = "Invalid JSON format: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error processing file: " + ex.Message });
+            }
+        }
     }
 
     [Route("api/[controller]")]
@@ -394,32 +530,79 @@ namespace OnlineAssessment.Web.Controllers
         // Create a new test
         [HttpPost("create")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateTest([FromBody] Test test)
+        public async Task<IActionResult> CreateTest([FromBody] TestCreationDto testDto)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(test.Title))
+                if (string.IsNullOrWhiteSpace(testDto.Title))
                     return BadRequest(new { message = "Test title is required" });
 
-                if (test.DurationMinutes <= 0 || test.DurationMinutes > 1440)
+                if (testDto.DurationMinutes <= 0 || testDto.DurationMinutes > 1440)
                     return BadRequest(new { message = "Duration must be between 1 and 1440 minutes" });
 
-                // Set a default description if none is provided
-                if (string.IsNullOrWhiteSpace(test.Description))
+                // Create the test
+                var test = new Test
                 {
-                    test.Description = $"Test created on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
-                }
-
-                // Set CreatedAt to current time
-                test.CreatedAt = DateTime.UtcNow;
+                    Title = testDto.Title,
+                    Description = testDto.Description ?? $"Test created on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}",
+                    DurationMinutes = testDto.DurationMinutes,
+                    CreatedAt = DateTime.UtcNow
+                };
 
                 _context.Tests.Add(test);
                 await _context.SaveChangesAsync();
+
+                // Add questions if provided
+                if (testDto.Questions != null && testDto.Questions.Any())
+                {
+                    foreach (var questionDto in testDto.Questions)
+                    {
+                        if (string.IsNullOrWhiteSpace(questionDto.Text))
+                            continue;
+
+                        var question = new Question
+                        {
+                            Text = questionDto.Text,
+                            Type = questionDto.Type,
+                            TestId = test.Id
+                        };
+
+                        _context.Questions.Add(question);
+                        await _context.SaveChangesAsync();
+
+                        if (questionDto.Type == QuestionType.MultipleChoice && questionDto.AnswerOptions != null)
+                        {
+                            foreach (var optionDto in questionDto.AnswerOptions)
+                            {
+                                _context.AnswerOptions.Add(new AnswerOption
+                                {
+                                    Text = optionDto.Text,
+                                    IsCorrect = optionDto.IsCorrect,
+                                    QuestionId = question.Id
+                                });
+                            }
+                        }
+                        else if (questionDto.Type == QuestionType.ShortAnswer && questionDto.TestCases != null)
+                        {
+                            foreach (var testCaseDto in questionDto.TestCases)
+                            {
+                                _context.TestCases.Add(new TestCase
+                                {
+                                    Input = testCaseDto.Input,
+                                    ExpectedOutput = testCaseDto.ExpectedOutput,
+                                    QuestionId = question.Id
+                                });
+                            }
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
                 
                 return Ok(new { 
                     message = "Test created successfully", 
                     test,
-                    redirectUrl = $"/Test/upload-questions/{test.Id}"
+                    redirectUrl = $"/Test/Index"
                 });
             }
             catch (Exception ex)
@@ -435,5 +618,53 @@ namespace OnlineAssessment.Web.Controllers
             var tests = await _context.Tests.ToListAsync();
             return Ok(tests);
         }
+    }
+
+    // Add these DTO classes at the end of the file
+    public class TestCreationDto
+    {
+        [Required]
+        public string Title { get; set; } = string.Empty;
+        
+        public string? Description { get; set; }
+        
+        [Required]
+        [Range(1, 1440)]
+        public int DurationMinutes { get; set; }
+        
+        public List<QuestionDto> Questions { get; set; } = new();
+    }
+
+    public class QuestionDto
+    {
+        [Required]
+        public string Text { get; set; } = string.Empty;
+        
+        [Required]
+        public QuestionType Type { get; set; }
+        
+        public int TestId { get; set; }
+        
+        public List<AnswerOptionDto> AnswerOptions { get; set; } = new();
+        
+        public List<TestCaseDto> TestCases { get; set; } = new();
+    }
+
+    public class AnswerOptionDto
+    {
+        [Required]
+        public string Text { get; set; } = string.Empty;
+        
+        [Required]
+        public bool IsCorrect { get; set; }
+    }
+
+    public class TestCaseDto
+    {
+        [Required]
+        public string Input { get; set; } = string.Empty;
+        
+        [Required]
+        public string ExpectedOutput { get; set; } = string.Empty;
     }
 }

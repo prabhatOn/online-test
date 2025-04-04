@@ -24,6 +24,27 @@
                     <label for="duration">Duration (minutes)</label>
                     <input type="number" class="form-control" id="duration" name="durationMinutes" min="1" max="1440" required>
                 </div>
+
+                <!-- Questions Section -->
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Questions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="questionsContainer">
+                            <!-- Question templates will be added here -->
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-3">
+                            <button type="button" class="btn btn-success" onclick="addMcqQuestion()">
+                                <i class="fas fa-plus"></i> Add MCQ Question
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="addCodingQuestion()">
+                                <i class="fas fa-code"></i> Add Coding Question
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 
                 <button type="submit" class="btn btn-primary">Create Test</button>
             </form>
@@ -33,20 +54,183 @@
 
 @section Scripts {
     <script>
+        let questionCount = 0;
+
+        function addMcqQuestion() {
+            const questionId = `question_${questionCount++}`;
+            const questionHtml = `
+                <div class="question-section mb-4" id="${questionId}">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">MCQ Question</h6>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestion('${questionId}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label>Question Text</label>
+                                <textarea class="form-control" name="questions[${questionId}][text]" required></textarea>
+                            </div>
+                            <div class="options-container">
+                                <div class="form-group mb-2">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="questions[${questionId}][options][]" placeholder="Option text" required>
+                                        <div class="input-group-text">
+                                            <input type="radio" name="questions[${questionId}][correct]" value="0" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addOption('${questionId}')">
+                                <i class="fas fa-plus"></i> Add Option
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', questionHtml);
+        }
+
+        function addCodingQuestion() {
+            const questionId = `question_${questionCount++}`;
+            const questionHtml = `
+                <div class="question-section mb-4" id="${questionId}">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Coding Question</h6>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestion('${questionId}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label>Question Text</label>
+                                <textarea class="form-control" name="questions[${questionId}][text]" required></textarea>
+                            </div>
+                            <div class="test-cases-container">
+                                <div class="test-case mb-2">
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <input type="text" class="form-control" name="questions[${questionId}][testCases][][input]" placeholder="Test Case Input" required>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <input type="text" class="form-control" name="questions[${questionId}][testCases][][output]" placeholder="Expected Output" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeTestCase(this)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTestCase('${questionId}')">
+                                <i class="fas fa-plus"></i> Add Test Case
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', questionHtml);
+        }
+
+        function addOption(questionId) {
+            const optionsContainer = document.querySelector(`#${questionId} .options-container`);
+            const optionCount = optionsContainer.children.length;
+            const optionHtml = `
+                <div class="form-group mb-2">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="questions[${questionId}][options][]" placeholder="Option text" required>
+                        <div class="input-group-text">
+                            <input type="radio" name="questions[${questionId}][correct]" value="${optionCount}" required>
+                        </div>
+                    </div>
+                </div>
+            `;
+            optionsContainer.insertAdjacentHTML('beforeend', optionHtml);
+        }
+
+        function addTestCase(questionId) {
+            const testCasesContainer = document.querySelector(`#${questionId} .test-cases-container`);
+            const testCaseHtml = `
+                <div class="test-case mb-2">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" name="questions[${questionId}][testCases][][input]" placeholder="Test Case Input" required>
+                        </div>
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" name="questions[${questionId}][testCases][][output]" placeholder="Expected Output" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeTestCase(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            testCasesContainer.insertAdjacentHTML('beforeend', testCaseHtml);
+        }
+
+        function removeQuestion(questionId) {
+            document.getElementById(questionId).remove();
+        }
+
+        function removeTestCase(button) {
+            button.closest('.test-case').remove();
+        }
+
         document.getElementById('createTestForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const formData = {
                 title: document.getElementById('title').value,
                 description: document.getElementById('description').value,
-                durationMinutes: parseInt(document.getElementById('duration').value)
+                durationMinutes: parseInt(document.getElementById('duration').value),
+                questions: []
             };
+
+            // Collect questions data
+            const questionSections = document.querySelectorAll('.question-section');
+            questionSections.forEach(section => {
+                const questionId = section.id;
+                const questionType = section.querySelector('.card-header h6').textContent.includes('MCQ') ? 'MultipleChoice' : 'ShortAnswer';
+                const questionText = section.querySelector('textarea').value;
+                
+                const question = {
+                    text: questionText,
+                    type: questionType,
+                    testId: 0 // Will be set by the server
+                };
+
+                if (questionType === 'MultipleChoice') {
+                    const options = Array.from(section.querySelectorAll('input[name$="[options][]"]')).map(input => input.value);
+                    const correctIndex = parseInt(section.querySelector('input[type="radio"]:checked').value);
+                    question.answerOptions = options.map((text, index) => ({
+                        text: text,
+                        isCorrect: index === correctIndex
+                    }));
+                } else {
+                    const testCases = Array.from(section.querySelectorAll('.test-case')).map(testCase => {
+                        const inputs = testCase.querySelectorAll('input');
+                        return {
+                            input: inputs[0].value,
+                            expectedOutput: inputs[1].value
+                        };
+                    });
+                    question.testCases = testCases;
+                }
+
+                formData.questions.push(question);
+            });
             
             try {
                 const response = await fetch('/api/TestApi/create', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
                     },
                     body: JSON.stringify(formData)
                 });

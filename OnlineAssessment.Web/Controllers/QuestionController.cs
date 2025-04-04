@@ -27,6 +27,9 @@ namespace OnlineAssessment.Web.Controllers
             if (string.IsNullOrWhiteSpace(questionDto.Text))
                 return BadRequest(new { message = "Question text is required" });
 
+            if (questionDto.TestId <= 0)
+                return BadRequest(new { message = "Test ID is required" });
+
             var question = new Question
             {
                 Text = questionDto.Text,

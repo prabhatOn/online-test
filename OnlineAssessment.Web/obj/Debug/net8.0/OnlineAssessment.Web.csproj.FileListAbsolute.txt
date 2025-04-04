@@ -335,6 +335,8 @@ I:\online-test\online-test\OnlineAssessment.Web\bin\Debug\net8.0\runtimes\win\li
 I:\online-test\online-test\OnlineAssessment.Web\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Runtime.Caching.dll
 I:\online-test\online-test\OnlineAssessment.Web\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 I:\online-test\online-test\OnlineAssessment.Web\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
+I:\online-test\online-test\OnlineAssessment.Web\bin\Debug\net8.0\OnlineAssessment.Compiler.dll
+I:\online-test\online-test\OnlineAssessment.Web\bin\Debug\net8.0\OnlineAssessment.Compiler.pdb
 I:\online-test\online-test\OnlineAssessment.Web\obj\Debug\net8.0\OnlineAssessment.Web.csproj.AssemblyReference.cache
 I:\online-test\online-test\OnlineAssessment.Web\obj\Debug\net8.0\OnlineAssessment.Web.GeneratedMSBuildEditorConfig.editorconfig
 I:\online-test\online-test\OnlineAssessment.Web\obj\Debug\net8.0\OnlineAssessment.Web.AssemblyInfoInputs.cache

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OnlineAssessment.Web.Models;
+using OnlineAssessment.Compiler.Services;
 using System.Text;
 using Microsoft.Extensions.FileProviders;
 
@@ -66,6 +67,9 @@ builder.Services.AddAuthorization();
 
 // ✅ Add Controllers
 builder.Services.AddControllersWithViews();
+
+// ✅ Add Code Execution Service
+builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 
 // ✅ Configure Swagger with JWT Support
 builder.Services.AddSwaggerGen(c =>
