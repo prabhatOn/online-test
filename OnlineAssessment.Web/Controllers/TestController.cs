@@ -225,6 +225,32 @@ namespace OnlineAssessment.Web.Controllers
                 return Json(new { success = false, message = "Error processing file: " + ex.Message });
             }
         }
+
+        [HttpDelete]
+        [Route("Test/delete/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteTest(int id)
+        {
+            try
+            {
+                var test = await _context.Tests
+                    .Include(t => t.Questions)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
+                if (test == null)
+                {
+                    return Json(new { success = false, message = "Test not found." });
+                }
+
+                _context.Tests.Remove(test);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Test deleted successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error deleting test: " + ex.Message });
+            }
+        }
     }
 
     [Route("api/[controller]")]
