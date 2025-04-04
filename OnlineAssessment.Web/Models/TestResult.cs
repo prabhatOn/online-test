@@ -25,6 +25,12 @@ namespace OnlineAssessment.Web.Models
         public double Score { get; set; }
 
         [Required]
+        public double McqScore { get; set; }
+
+        [Required]
+        public double CodingScore { get; set; }
+
+        [Required]
         public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
 
         [ForeignKey("TestId")]

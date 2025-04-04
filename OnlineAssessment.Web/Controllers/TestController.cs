@@ -263,6 +263,8 @@ namespace OnlineAssessment.Web.Controllers
                 var test = await _context.Tests
                     .Include(t => t.Questions)
                         .ThenInclude(q => q.AnswerOptions)
+                    .Include(t => t.Questions)
+                        .ThenInclude(q => q.TestCases)
                     .FirstOrDefaultAsync(t => t.Id == id);
 
                 if (test == null)
@@ -270,60 +272,71 @@ namespace OnlineAssessment.Web.Controllers
                     return NotFound();
                 }
 
-                int correctAnswers = 0;
-                int totalQuestions = test.Questions.Count;
+                int mcqCorrect = 0;
+                int totalMcq = test.Questions.Count(q => q.Type == QuestionType.MultipleChoice);
+                int codingCorrect = 0;
+                int totalCoding = test.Questions.Count(q => q.Type == QuestionType.ShortAnswer);
                 var evaluationDetails = new List<string>();
 
-                foreach (var question in test.Questions)
+                // Evaluate MCQ questions
+                foreach (var question in test.Questions.Where(q => q.Type == QuestionType.MultipleChoice))
                 {
                     var questionNumber = test.Questions.ToList().IndexOf(question) + 1;
-                    if (question.Type == QuestionType.MultipleChoice)
+                    var selectedOptionId = answers.GetValueOrDefault($"question_{question.Id}");
+                    
+                    if (selectedOptionId != null)
                     {
-                        var selectedOptionId = answers.GetValueOrDefault($"question_{question.Id}");
-                        if (selectedOptionId != null)
+                        var selectedOption = question.AnswerOptions.FirstOrDefault(a => a.Id.ToString() == selectedOptionId);
+                        var isCorrect = selectedOption != null && selectedOption.IsCorrect;
+                        if (isCorrect)
                         {
-                            var selectedOption = question.AnswerOptions.FirstOrDefault(a => a.Id.ToString() == selectedOptionId);
-                            var isCorrect = selectedOption != null && selectedOption.IsCorrect;
-                            if (isCorrect)
-                            {
-                                correctAnswers++;
-                            }
-                            evaluationDetails.Add($"Question {questionNumber}: Multiple Choice - Selected: {selectedOption?.Text ?? "None"} - Correct: {isCorrect}");
+                            mcqCorrect++;
                         }
-                        else
-                        {
-                            evaluationDetails.Add($"Question {questionNumber}: Multiple Choice - No answer selected");
-                        }
+                        evaluationDetails.Add($"MCQ {questionNumber}: Selected: {selectedOption?.Text ?? "None"} - Correct: {isCorrect}");
                     }
-                    else if (question.Type == QuestionType.ShortAnswer)
+                    else
                     {
-                        var answer = answers.GetValueOrDefault($"question_{question.Id}");
-                        if (answer != null)
-                        {
-                            var testCase = question.TestCases.FirstOrDefault();
-                            var isCorrect = testCase != null && answer.Trim().Equals(testCase.ExpectedOutput.Trim(), StringComparison.OrdinalIgnoreCase);
-                            if (isCorrect)
-                            {
-                                correctAnswers++;
-                            }
-                            evaluationDetails.Add($"Question {questionNumber}: Short Answer - Answer: {answer} - Expected: {testCase?.ExpectedOutput} - Correct: {isCorrect}");
-                        }
-                        else
-                        {
-                            evaluationDetails.Add($"Question {questionNumber}: Short Answer - No answer provided");
-                        }
+                        evaluationDetails.Add($"MCQ {questionNumber}: No answer selected");
                     }
                 }
 
-                double score = (double)correctAnswers / totalQuestions * 100;
+                // Evaluate coding questions
+                foreach (var question in test.Questions.Where(q => q.Type == QuestionType.ShortAnswer))
+                {
+                    var questionNumber = test.Questions.ToList().IndexOf(question) + 1;
+                    var answer = answers.GetValueOrDefault($"question_{question.Id}");
+                    
+                    if (answer != null)
+                    {
+                        var testCase = question.TestCases.FirstOrDefault();
+                        var isCorrect = testCase != null && answer.Trim().Equals(testCase.ExpectedOutput.Trim(), StringComparison.OrdinalIgnoreCase);
+                        if (isCorrect)
+                        {
+                            codingCorrect++;
+                        }
+                        evaluationDetails.Add($"Coding {questionNumber}: Answer submitted - Passed test case: {isCorrect}");
+                    }
+                    else
+                    {
+                        evaluationDetails.Add($"Coding {questionNumber}: No answer provided");
+                    }
+                }
+
+                // Calculate total score
+                double mcqScore = totalMcq > 0 ? (double)mcqCorrect / totalMcq * 50 : 0; // MCQ worth 50%
+                double codingScore = totalCoding > 0 ? (double)codingCorrect / totalCoding * 50 : 0; // Coding worth 50%
+                double totalScore = mcqScore + codingScore;
 
                 var result = new TestResult
                 {
                     TestId = id,
                     Username = User.Identity?.Name ?? "Anonymous",
-                    TotalQuestions = totalQuestions,
-                    CorrectAnswers = correctAnswers,
-                    Score = score
+                    TotalQuestions = totalMcq + totalCoding,
+                    CorrectAnswers = mcqCorrect + codingCorrect,
+                    Score = totalScore,
+                    McqScore = mcqScore,
+                    CodingScore = codingScore,
+                    SubmittedAt = DateTime.UtcNow
                 };
 
                 _context.TestResults.Add(result);
@@ -333,9 +346,13 @@ namespace OnlineAssessment.Web.Controllers
                     success = true, 
                     redirectUrl = $"/Test/Result/{result.Id}",
                     evaluationDetails = evaluationDetails,
-                    score = score,
-                    correctAnswers = correctAnswers,
-                    totalQuestions = totalQuestions
+                    score = totalScore,
+                    mcqScore = mcqScore,
+                    codingScore = codingScore,
+                    mcqCorrect = mcqCorrect,
+                    totalMcq = totalMcq,
+                    codingCorrect = codingCorrect,
+                    totalCoding = totalCoding
                 });
             }
             catch (Exception ex)

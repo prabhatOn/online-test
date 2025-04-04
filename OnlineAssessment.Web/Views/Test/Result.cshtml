@@ -12,7 +12,7 @@
                     <h2 class="mb-0">Test Result</h2>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row mb-4">
                         <div class="col-md-6">
                             <h4>Test Details</h4>
                             <p><strong>Test:</strong> @Model.Test.Title</p>
@@ -20,14 +20,53 @@
                             <p><strong>Submitted at:</strong> @Model.SubmittedAt.ToString("g")</p>
                         </div>
                         <div class="col-md-6">
-                            <h4>Score</h4>
+                            <h4>Overall Score</h4>
                             <div class="text-center">
-                                <h1 class="display-1 @(Model.Score >= 70 ? "text-success" : "text-danger")">
-                                    @Model.Score.ToString("0.0")%
-                                </h1>
-                                <p class="lead">
-                                    @Model.CorrectAnswers out of @Model.TotalQuestions questions correct
-                                </p>
+                                <div class="score-circle mx-auto mb-3 @(Model.Score >= 70 ? "border-success" : "border-danger")">
+                                    <h1 class="display-4 mb-0">@Model.Score.ToString("0.0")%</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- MCQ Section Score -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">MCQ Section</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="score-circle-small mx-auto mb-3 @(Model.McqScore >= 35 ? "border-success" : "border-danger")">
+                                        <h2>@Model.McqScore.ToString("0.0")%</h2>
+                                    </div>
+                                    <p class="lead mb-0">
+                                        MCQ Score (50% weight)
+                                    </p>
+                                    <small class="text-muted">
+                                        Correct MCQs: @((Model.McqScore * 2).ToString("0.0"))%
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coding Section Score -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">Coding Section</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="score-circle-small mx-auto mb-3 @(Model.CodingScore >= 35 ? "border-success" : "border-danger")">
+                                        <h2>@Model.CodingScore.ToString("0.0")%</h2>
+                                    </div>
+                                    <p class="lead mb-0">
+                                        Coding Score (50% weight)
+                                    </p>
+                                    <small class="text-muted">
+                                        Correct Solutions: @((Model.CodingScore * 2).ToString("0.0"))%
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -39,4 +78,36 @@
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+<style>
+    .score-circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-width: 10px;
+        border-style: solid;
+    }
+
+    .score-circle-small {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-width: 6px;
+        border-style: solid;
+    }
+
+    .border-success {
+        border-color: #28a745;
+    }
+
+    .border-danger {
+        border-color: #dc3545;
+    }
+</style> 

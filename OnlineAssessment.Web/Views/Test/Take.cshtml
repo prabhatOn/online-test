@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Take Test";
     var totalQuestions = Model.Questions.Count;
+    var mcqQuestions = Model.Questions.Where(q => q.Type == QuestionType.MultipleChoice).ToList();
+    var codingQuestions = Model.Questions.Where(q => q.Type == QuestionType.ShortAnswer).ToList();
 }
 
 <div class="container mt-4">
@@ -27,36 +29,49 @@
                     </div>
                     
                     <form id="testForm">
-                        <div id="questionsContainer">
-                            @for (int i = 0; i < Model.Questions.Count; i++)
-                            {
-                                var question = Model.Questions.ElementAt(i);
-                                <div class="question-section mb-4 @(i == 0 ? "" : "d-none")" data-question-id="@question.Id">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h5>Question @(i + 1) of @totalQuestions</h5>
-                                        <div class="question-navigation">
-                                            @if (i > 0)
-                                            {
-                                                <button type="button" class="btn btn-outline-primary btn-sm me-2 prev-question">
-                                                    <i class="fas fa-arrow-left"></i> Previous
-                                                </button>
-                                            }
-                                            @if (i < totalQuestions - 1)
-                                            {
-                                                <button type="button" class="btn btn-outline-primary btn-sm next-question">
-                                                    Next <i class="fas fa-arrow-right"></i>
-                                                </button>
-                                            }
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="question-content">
-                                        <p class="lead">@question.Text</p>
-                                        
-                                        @if (question.Type == QuestionType.MultipleChoice)
-                                        {
-                                            @if (question.AnswerOptions != null)
-                                            {
+                        <!-- Test Sections Navigation -->
+                        <ul class="nav nav-pills mb-4" id="testSections" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="mcq-tab" data-bs-toggle="pill" data-bs-target="#mcq" type="button" role="tab">
+                                    MCQ Section <span class="badge bg-secondary ms-2">@mcqQuestions.Count Questions</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="coding-tab" data-bs-toggle="pill" data-bs-target="#coding" type="button" role="tab">
+                                    Coding Section <span class="badge bg-secondary ms-2">@codingQuestions.Count Questions</span>
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="testSectionsContent">
+                            <!-- MCQ Section -->
+                            <div class="tab-pane fade show active" id="mcq" role="tabpanel">
+                                <div id="mcqContainer">
+                                    @for (int i = 0; i < mcqQuestions.Count; i++)
+                                    {
+                                        var question = mcqQuestions[i];
+                                        <div class="question-section mb-4 @(i == 0 ? "" : "d-none")" data-question-id="@question.Id">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5>MCQ Question @(i + 1) of @mcqQuestions.Count</h5>
+                                                <div class="question-navigation">
+                                                    @if (i > 0)
+                                                    {
+                                                        <button type="button" class="btn btn-outline-primary btn-sm me-2 prev-question">
+                                                            <i class="fas fa-arrow-left"></i> Previous
+                                                        </button>
+                                                    }
+                                                    @if (i < mcqQuestions.Count - 1)
+                                                    {
+                                                        <button type="button" class="btn btn-outline-primary btn-sm next-question">
+                                                            Next <i class="fas fa-arrow-right"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="question-content">
+                                                <p class="lead">@question.Text</p>
                                                 <div class="answer-options">
                                                     @foreach (var option in question.AnswerOptions)
                                                     {
@@ -72,26 +87,71 @@
                                                         </div>
                                                     }
                                                 </div>
-                                            }
-                                        }
-                                        else if (question.Type == QuestionType.ShortAnswer)
-                                        {
-                                            <div class="form-group">
-                                                <textarea class="form-control" 
-                                                          name="question_@question.Id" 
-                                                          rows="4" 
-                                                          required
-                                                          placeholder="Enter your answer here..."></textarea>
                                             </div>
-                                        }
+                                        </div>
+                                    }
+                                    <div class="text-end mt-4">
+                                        <button type="button" class="btn btn-success btn-lg" id="completeMcqBtn">
+                                            <i class="fas fa-check"></i> Complete MCQ Section
+                                        </button>
                                     </div>
                                 </div>
-                            }
+                            </div>
+
+                            <!-- Coding Section -->
+                            <div class="tab-pane fade" id="coding" role="tabpanel">
+                                <div id="codingContainer">
+                                    @for (int i = 0; i < codingQuestions.Count; i++)
+                                    {
+                                        var question = codingQuestions[i];
+                                        <div class="question-section mb-4 @(i == 0 ? "" : "d-none")" data-question-id="@question.Id">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5>Coding Question @(i + 1) of @codingQuestions.Count</h5>
+                                                <div class="question-navigation">
+                                                    @if (i > 0)
+                                                    {
+                                                        <button type="button" class="btn btn-outline-primary btn-sm me-2 prev-question">
+                                                            <i class="fas fa-arrow-left"></i> Previous
+                                                        </button>
+                                                    }
+                                                    @if (i < codingQuestions.Count - 1)
+                                                    {
+                                                        <button type="button" class="btn btn-outline-primary btn-sm next-question">
+                                                            Next <i class="fas fa-arrow-right"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="question-content">
+                                                <p class="lead">@question.Text</p>
+                                                <div class="form-group">
+                                                    <textarea class="form-control coding-answer" 
+                                                              name="question_@question.Id" 
+                                                              rows="10" 
+                                                              required
+                                                              placeholder="Write your code here..."></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="text-end mt-4">
+                                        <button type="button" class="btn btn-success btn-lg" id="completeCodingBtn">
+                                            <i class="fas fa-check"></i> Complete Coding Section
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="text-end mt-4">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-check"></i> Submit Test
+                        <!-- Main Submit Button (Initially Hidden) -->
+                        <div class="text-center mt-4 d-none" id="mainSubmitContainer">
+                            <div class="alert alert-success">
+                                <h4 class="alert-heading"><i class="fas fa-check-circle"></i> Sections Completed!</h4>
+                                <p>You have completed both the MCQ and Coding sections. You can now submit your test.</p>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Submit Test
                             </button>
                         </div>
                     </form>
@@ -105,40 +165,78 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const testForm = document.getElementById('testForm');
-            const questionsContainer = document.getElementById('questionsContainer');
+            const mcqContainer = document.getElementById('mcqContainer');
+            const codingContainer = document.getElementById('codingContainer');
             const progressBar = document.getElementById('progressBar');
             const timerElement = document.getElementById('timer');
-            const totalQuestions = @totalQuestions;
-            let currentQuestionIndex = 0;
+            const completeMcqBtn = document.getElementById('completeMcqBtn');
+            const completeCodingBtn = document.getElementById('completeCodingBtn');
+            const mainSubmitContainer = document.getElementById('mainSubmitContainer');
+            
             let timeLeft = @Model.DurationMinutes * 60; // Convert minutes to seconds
+            let mcqCompleted = false;
+            let codingCompleted = false;
             
             // Initialize timer
             updateTimer();
             const timerInterval = setInterval(updateTimer, 1000);
             
-            // Initialize progress bar
-            updateProgress();
-            
-            // Handle question navigation
-            document.querySelectorAll('.next-question').forEach(button => {
-                button.addEventListener('click', () => {
-                    if (currentQuestionIndex < totalQuestions - 1) {
-                        navigateQuestion(currentQuestionIndex + 1);
-                    }
-                });
+            // Handle MCQ section completion
+            completeMcqBtn.addEventListener('click', function() {
+                const mcqTab = document.getElementById('mcq-tab');
+                const codingTab = document.getElementById('coding-tab');
+                
+                // Validate all MCQ questions are answered
+                const mcqAnswers = mcqContainer.querySelectorAll('input[type="radio"]:checked');
+                if (mcqAnswers.length < @mcqQuestions.Count) {
+                    alert('Please answer all MCQ questions before proceeding.');
+                    return;
+                }
+                
+                mcqCompleted = true;
+                mcqTab.classList.add('completed');
+                codingTab.click(); // Switch to coding section
+                checkSectionsCompletion();
             });
             
-            document.querySelectorAll('.prev-question').forEach(button => {
-                button.addEventListener('click', () => {
-                    if (currentQuestionIndex > 0) {
-                        navigateQuestion(currentQuestionIndex - 1);
+            // Handle Coding section completion
+            completeCodingBtn.addEventListener('click', function() {
+                // Validate all coding questions have answers
+                const codingAnswers = codingContainer.querySelectorAll('.coding-answer');
+                let allAnswered = true;
+                codingAnswers.forEach(answer => {
+                    if (!answer.value.trim()) {
+                        allAnswered = false;
                     }
                 });
+                
+                if (!allAnswered) {
+                    alert('Please answer all coding questions before proceeding.');
+                    return;
+                }
+                
+                codingCompleted = true;
+                document.getElementById('coding-tab').classList.add('completed');
+                checkSectionsCompletion();
             });
+            
+            // Check if both sections are completed
+            function checkSectionsCompletion() {
+                if (mcqCompleted && codingCompleted) {
+                    mainSubmitContainer.classList.remove('d-none');
+                    completeMcqBtn.disabled = true;
+                    completeCodingBtn.disabled = true;
+                }
+            }
             
             // Handle form submission
             testForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                
+                if (!mcqCompleted || !codingCompleted) {
+                    alert('Please complete both MCQ and Coding sections before submitting.');
+                    return;
+                }
                 
                 if (confirm('Are you sure you want to submit the test? You cannot change your answers after submission.')) {
                     const formData = new FormData(this);
@@ -159,90 +257,7 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Show evaluation details in a modal before redirecting
-                            const modalHtml = `
-                                <div class="modal fade" id="evaluationModal" tabindex="-1" aria-labelledby="evaluationModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-primary text-white">
-                                                <h5 class="modal-title" id="evaluationModalLabel">
-                                                    <i class="fas fa-clipboard-check me-2"></i>Test Evaluation Details
-                                                </h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="text-center mb-4">
-                                                    <div class="score-circle mx-auto mb-3">
-                                                        <h2 class="mb-0">${data.score.toFixed(1)}%</h2>
-                                                    </div>
-                                                    <h4 class="mb-2">Test Summary</h4>
-                                                    <p class="text-muted">
-                                                        <i class="fas fa-check-circle text-success me-1"></i>
-                                                        ${data.correctAnswers} out of ${data.totalQuestions} questions correct
-                                                    </p>
-                                                </div>
-                                                
-                                                <div class="evaluation-details">
-                                                    <h5 class="mb-3">
-                                                        <i class="fas fa-list-ul me-2"></i>Question Details
-                                                    </h5>
-                                                    <div class="accordion" id="evaluationAccordion">
-                                                        ${data.evaluationDetails.map((detail, index) => `
-                                                            <div class="accordion-item">
-                                                                <h2 class="accordion-header" id="heading${index}">
-                                                                    <button class="accordion-button ${detail.includes('Correct: true') ? 'bg-success-subtle' : 'bg-danger-subtle'}" 
-                                                                            type="button" 
-                                                                            data-bs-toggle="collapse" 
-                                                                            data-bs-target="#collapse${index}" 
-                                                                            aria-expanded="true" 
-                                                                            aria-controls="collapse${index}">
-                                                                        <div class="d-flex align-items-center w-100">
-                                                                            <span class="me-2">Question ${index + 1}</span>
-                                                                            ${detail.includes('Correct: true') 
-                                                                                ? '<i class="fas fa-check-circle text-success"></i>' 
-                                                                                : '<i class="fas fa-times-circle text-danger"></i>'}
-                                                                        </div>
-                                                                    </button>
-                                                                </h2>
-                                                                <div id="collapse${index}" 
-                                                                     class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
-                                                                     aria-labelledby="heading${index}" 
-                                                                     data-bs-parent="#evaluationAccordion">
-                                                                    <div class="accordion-body">
-                                                                        <div class="question-detail">
-                                                                            ${detail.replace('Question ' + (index + 1) + ': ', '')}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        `).join('')}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-times me-1"></i>Close
-                                                </button>
-                                                <button type="button" class="btn btn-primary" onclick="window.location.href='${data.redirectUrl}'">
-                                                    <i class="fas fa-chart-bar me-1"></i>View Detailed Results
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                            
-                            // Add modal to the page
-                            document.body.insertAdjacentHTML('beforeend', modalHtml);
-                            
-                            // Show the modal
-                            const modal = new bootstrap.Modal(document.getElementById('evaluationModal'));
-                            modal.show();
-                            
-                            // Redirect when modal is closed
-                            document.getElementById('evaluationModal').addEventListener('hidden.bs.modal', function () {
-                                window.location.href = data.redirectUrl;
-                            });
+                            window.location.href = data.redirectUrl;
                         } else {
                             alert('Failed to submit test: ' + data.message);
                         }
@@ -254,10 +269,11 @@
                 }
             });
             
+            // Timer function
             function updateTimer() {
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    alert('Time is up! Your test will be submitted automatically.');
+                    alert('Time is up! The test will be submitted automatically.');
                     testForm.dispatchEvent(new Event('submit'));
                     return;
                 }
@@ -268,118 +284,46 @@
                 timeLeft--;
             }
             
-            function updateProgress() {
-                const answeredQuestions = document.querySelectorAll('input:checked, textarea:not(:empty)').length;
-                const progress = (answeredQuestions / totalQuestions) * 100;
-                progressBar.style.width = `${progress}%`;
-                progressBar.setAttribute('aria-valuenow', progress);
-            }
-            
-            function navigateQuestion(index) {
-                const currentQuestion = document.querySelector(`.question-section:nth-child(${currentQuestionIndex + 1})`);
-                const nextQuestion = document.querySelector(`.question-section:nth-child(${index + 1})`);
-                
-                currentQuestion.classList.add('d-none');
-                nextQuestion.classList.remove('d-none');
-                currentQuestionIndex = index;
-                
-                // Update progress when navigating
-                updateProgress();
-            }
-            
-            // Update progress when answers change
-            testForm.addEventListener('change', updateProgress);
+            // Handle question navigation within sections
+            document.querySelectorAll('.next-question, .prev-question').forEach(button => {
+                button.addEventListener('click', function() {
+                    const currentSection = this.closest('.tab-pane');
+                    const currentQuestion = currentSection.querySelector('.question-section:not(.d-none)');
+                    const questions = Array.from(currentSection.querySelectorAll('.question-section'));
+                    const currentIndex = questions.indexOf(currentQuestion);
+                    
+                    if (this.classList.contains('next-question') && currentIndex < questions.length - 1) {
+                        currentQuestion.classList.add('d-none');
+                        questions[currentIndex + 1].classList.remove('d-none');
+                    } else if (this.classList.contains('prev-question') && currentIndex > 0) {
+                        currentQuestion.classList.add('d-none');
+                        questions[currentIndex - 1].classList.remove('d-none');
+                    }
+                });
+            });
         });
     </script>
     
     <style>
-        .question-section {
-            transition: all 0.3s ease;
+        .nav-link.completed {
+            background-color: #28a745 !important;
+            color: white !important;
         }
         
-        .answer-options .form-check {
-            padding: 10px;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            margin-bottom: 8px;
-            transition: all 0.2s ease;
-        }
-        
-        .answer-options .form-check:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .answer-options .form-check-input:checked + .form-check-label {
-            font-weight: bold;
-        }
-        
-        #timer {
-            font-family: monospace;
-            font-size: 2rem;
-        }
-        
-        .progress {
-            height: 10px;
-        }
-
-        /* New styles for evaluation modal */
         .score-circle {
-            width: 120px;
-            height: 120px;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #007bff, #0056b3);
+            background-color: #f8f9fa;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 10px solid #28a745;
         }
-
-        .score-circle h2 {
-            font-size: 2.5rem;
-            font-weight: bold;
-        }
-
-        .accordion-button {
-            font-weight: 500;
-        }
-
-        .accordion-button:not(.collapsed) {
-            color: #000;
-        }
-
-        .bg-success-subtle {
-            background-color: rgba(40, 167, 69, 0.1);
-        }
-
-        .bg-danger-subtle {
-            background-color: rgba(220, 53, 69, 0.1);
-        }
-
-        .question-detail {
+        
+        .coding-answer {
             font-family: monospace;
-            white-space: pre-wrap;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-        }
-
-        .modal-content {
-            border: none;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-header {
-            border-bottom: none;
-        }
-
-        .modal-footer {
-            border-top: none;
-            padding: 1rem;
-        }
-
-        .btn-close-white {
-            filter: invert(1) grayscale(100%) brightness(200%);
+            resize: vertical;
         }
     </style>
 } 

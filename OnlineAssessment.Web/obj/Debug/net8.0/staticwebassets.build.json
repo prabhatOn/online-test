@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ZwCva/++fBhYMR84xHsae2orjiScce6eTl4zWJuoVzc=",
+  "Hash": "5ph+z2qQmrBuR2GLwWZv8RLg8yfhfFHKoqM8T0OcaPc=",
   "Source": "OnlineAssessment.Web",
   "BasePath": "_content/OnlineAssessment.Web",
   "Mode": "Default",
@@ -1359,6 +1359,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\74629eca-da96-4af0-bc8b-26a4a748b68b_demo.json"
+    },
+    {
+      "Identity": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\bee136f2-7603-45bc-84bf-79b8f5486995_demo.json",
+      "SourceId": "OnlineAssessment.Web",
+      "SourceType": "Discovered",
+      "ContentRoot": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\",
+      "BasePath": "_content/OnlineAssessment.Web",
+      "RelativePath": "uploads/bee136f2-7603-45bc-84bf-79b8f5486995_demo#[.{fingerprint}]?.json",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "3boxdyeam8",
+      "Integrity": "sbFp/y6Llz62VdCA+Tw+q4lqUHX5PrtZIzSSllohzNk=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\bee136f2-7603-45bc-84bf-79b8f5486995_demo.json"
     },
     {
       "Identity": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\c510169a-edca-47fd-864d-4d35e96dd87a_demo.json",
@@ -6670,6 +6691,88 @@
         {
           "Name": "integrity",
           "Value": "sha256-zexXFQDvsFztnXmCQXB09i/kV0oRML8ng92C61pq6QQ="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/bee136f2-7603-45bc-84bf-79b8f5486995_demo.3boxdyeam8.json",
+      "AssetFile": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\bee136f2-7603-45bc-84bf-79b8f5486995_demo.json",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "392"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/json"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"sbFp/y6Llz62VdCA+Tw+q4lqUHX5PrtZIzSSllohzNk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 04 Apr 2025 09:15:15 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "3boxdyeam8"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/bee136f2-7603-45bc-84bf-79b8f5486995_demo.json"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-sbFp/y6Llz62VdCA+Tw+q4lqUHX5PrtZIzSSllohzNk="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/bee136f2-7603-45bc-84bf-79b8f5486995_demo.json",
+      "AssetFile": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\bee136f2-7603-45bc-84bf-79b8f5486995_demo.json",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "392"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/json"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"sbFp/y6Llz62VdCA+Tw+q4lqUHX5PrtZIzSSllohzNk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 04 Apr 2025 09:15:15 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-sbFp/y6Llz62VdCA+Tw+q4lqUHX5PrtZIzSSllohzNk="
         }
       ]
     },
