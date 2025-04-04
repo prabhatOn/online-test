@@ -272,19 +272,27 @@ namespace OnlineAssessment.Web.Controllers
 
                 int correctAnswers = 0;
                 int totalQuestions = test.Questions.Count;
+                var evaluationDetails = new List<string>();
 
                 foreach (var question in test.Questions)
                 {
+                    var questionNumber = test.Questions.ToList().IndexOf(question) + 1;
                     if (question.Type == QuestionType.MultipleChoice)
                     {
                         var selectedOptionId = answers.GetValueOrDefault($"question_{question.Id}");
                         if (selectedOptionId != null)
                         {
                             var selectedOption = question.AnswerOptions.FirstOrDefault(a => a.Id.ToString() == selectedOptionId);
-                            if (selectedOption != null && selectedOption.IsCorrect)
+                            var isCorrect = selectedOption != null && selectedOption.IsCorrect;
+                            if (isCorrect)
                             {
                                 correctAnswers++;
                             }
+                            evaluationDetails.Add($"Question {questionNumber}: Multiple Choice - Selected: {selectedOption?.Text ?? "None"} - Correct: {isCorrect}");
+                        }
+                        else
+                        {
+                            evaluationDetails.Add($"Question {questionNumber}: Multiple Choice - No answer selected");
                         }
                     }
                     else if (question.Type == QuestionType.ShortAnswer)
@@ -293,10 +301,16 @@ namespace OnlineAssessment.Web.Controllers
                         if (answer != null)
                         {
                             var testCase = question.TestCases.FirstOrDefault();
-                            if (testCase != null && answer.Trim().Equals(testCase.ExpectedOutput.Trim(), StringComparison.OrdinalIgnoreCase))
+                            var isCorrect = testCase != null && answer.Trim().Equals(testCase.ExpectedOutput.Trim(), StringComparison.OrdinalIgnoreCase);
+                            if (isCorrect)
                             {
                                 correctAnswers++;
                             }
+                            evaluationDetails.Add($"Question {questionNumber}: Short Answer - Answer: {answer} - Expected: {testCase?.ExpectedOutput} - Correct: {isCorrect}");
+                        }
+                        else
+                        {
+                            evaluationDetails.Add($"Question {questionNumber}: Short Answer - No answer provided");
                         }
                     }
                 }
@@ -317,7 +331,11 @@ namespace OnlineAssessment.Web.Controllers
 
                 return Ok(new { 
                     success = true, 
-                    redirectUrl = $"/Test/Result/{result.Id}" 
+                    redirectUrl = $"/Test/Result/{result.Id}",
+                    evaluationDetails = evaluationDetails,
+                    score = score,
+                    correctAnswers = correctAnswers,
+                    totalQuestions = totalQuestions
                 });
             }
             catch (Exception ex)

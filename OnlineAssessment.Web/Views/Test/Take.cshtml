@@ -159,7 +159,90 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            window.location.href = data.redirectUrl;
+                            // Show evaluation details in a modal before redirecting
+                            const modalHtml = `
+                                <div class="modal fade" id="evaluationModal" tabindex="-1" aria-labelledby="evaluationModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-primary text-white">
+                                                <h5 class="modal-title" id="evaluationModalLabel">
+                                                    <i class="fas fa-clipboard-check me-2"></i>Test Evaluation Details
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="text-center mb-4">
+                                                    <div class="score-circle mx-auto mb-3">
+                                                        <h2 class="mb-0">${data.score.toFixed(1)}%</h2>
+                                                    </div>
+                                                    <h4 class="mb-2">Test Summary</h4>
+                                                    <p class="text-muted">
+                                                        <i class="fas fa-check-circle text-success me-1"></i>
+                                                        ${data.correctAnswers} out of ${data.totalQuestions} questions correct
+                                                    </p>
+                                                </div>
+                                                
+                                                <div class="evaluation-details">
+                                                    <h5 class="mb-3">
+                                                        <i class="fas fa-list-ul me-2"></i>Question Details
+                                                    </h5>
+                                                    <div class="accordion" id="evaluationAccordion">
+                                                        ${data.evaluationDetails.map((detail, index) => `
+                                                            <div class="accordion-item">
+                                                                <h2 class="accordion-header" id="heading${index}">
+                                                                    <button class="accordion-button ${detail.includes('Correct: true') ? 'bg-success-subtle' : 'bg-danger-subtle'}" 
+                                                                            type="button" 
+                                                                            data-bs-toggle="collapse" 
+                                                                            data-bs-target="#collapse${index}" 
+                                                                            aria-expanded="true" 
+                                                                            aria-controls="collapse${index}">
+                                                                        <div class="d-flex align-items-center w-100">
+                                                                            <span class="me-2">Question ${index + 1}</span>
+                                                                            ${detail.includes('Correct: true') 
+                                                                                ? '<i class="fas fa-check-circle text-success"></i>' 
+                                                                                : '<i class="fas fa-times-circle text-danger"></i>'}
+                                                                        </div>
+                                                                    </button>
+                                                                </h2>
+                                                                <div id="collapse${index}" 
+                                                                     class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
+                                                                     aria-labelledby="heading${index}" 
+                                                                     data-bs-parent="#evaluationAccordion">
+                                                                    <div class="accordion-body">
+                                                                        <div class="question-detail">
+                                                                            ${detail.replace('Question ' + (index + 1) + ': ', '')}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        `).join('')}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    <i class="fas fa-times me-1"></i>Close
+                                                </button>
+                                                <button type="button" class="btn btn-primary" onclick="window.location.href='${data.redirectUrl}'">
+                                                    <i class="fas fa-chart-bar me-1"></i>View Detailed Results
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Add modal to the page
+                            document.body.insertAdjacentHTML('beforeend', modalHtml);
+                            
+                            // Show the modal
+                            const modal = new bootstrap.Modal(document.getElementById('evaluationModal'));
+                            modal.show();
+                            
+                            // Redirect when modal is closed
+                            document.getElementById('evaluationModal').addEventListener('hidden.bs.modal', function () {
+                                window.location.href = data.redirectUrl;
+                            });
                         } else {
                             alert('Failed to submit test: ' + data.message);
                         }
@@ -237,6 +320,66 @@
         
         .progress {
             height: 10px;
+        }
+
+        /* New styles for evaluation modal */
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-circle h2 {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .accordion-button {
+            font-weight: 500;
+        }
+
+        .accordion-button:not(.collapsed) {
+            color: #000;
+        }
+
+        .bg-success-subtle {
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+
+        .bg-danger-subtle {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+
+        .question-detail {
+            font-family: monospace;
+            white-space: pre-wrap;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .modal-content {
+            border: none;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            border-bottom: none;
+        }
+
+        .modal-footer {
+            border-top: none;
+            padding: 1rem;
+        }
+
+        .btn-close-white {
+            filter: invert(1) grayscale(100%) brightness(200%);
         }
     </style>
 } 

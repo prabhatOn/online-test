@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "TVAv8oBTk6wKpVXNZx5dm0RyCo0Q7wN/Pwei3GRe8lU=",
+  "Hash": "ZwCva/++fBhYMR84xHsae2orjiScce6eTl4zWJuoVzc=",
   "Source": "OnlineAssessment.Web",
   "BasePath": "_content/OnlineAssessment.Web",
   "Mode": "Default",
@@ -1359,6 +1359,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\74629eca-da96-4af0-bc8b-26a4a748b68b_demo.json"
+    },
+    {
+      "Identity": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\c510169a-edca-47fd-864d-4d35e96dd87a_demo.json",
+      "SourceId": "OnlineAssessment.Web",
+      "SourceType": "Discovered",
+      "ContentRoot": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\",
+      "BasePath": "_content/OnlineAssessment.Web",
+      "RelativePath": "uploads/c510169a-edca-47fd-864d-4d35e96dd87a_demo#[.{fingerprint}]?.json",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "3vmglooyvx",
+      "Integrity": "QZOpKTVziGOLspPXVfV3UKtVuiJbCX8hNpdIrCYcLJ4=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\c510169a-edca-47fd-864d-4d35e96dd87a_demo.json"
     },
     {
       "Identity": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\e23ae1d4-f268-4b56-9584-269205e51186_demo.json",
@@ -6649,6 +6670,88 @@
         {
           "Name": "integrity",
           "Value": "sha256-zexXFQDvsFztnXmCQXB09i/kV0oRML8ng92C61pq6QQ="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/c510169a-edca-47fd-864d-4d35e96dd87a_demo.3vmglooyvx.json",
+      "AssetFile": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\c510169a-edca-47fd-864d-4d35e96dd87a_demo.json",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1947"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/json"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"QZOpKTVziGOLspPXVfV3UKtVuiJbCX8hNpdIrCYcLJ4=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 04 Apr 2025 08:05:43 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "3vmglooyvx"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/c510169a-edca-47fd-864d-4d35e96dd87a_demo.json"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-QZOpKTVziGOLspPXVfV3UKtVuiJbCX8hNpdIrCYcLJ4="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/c510169a-edca-47fd-864d-4d35e96dd87a_demo.json",
+      "AssetFile": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\c510169a-edca-47fd-864d-4d35e96dd87a_demo.json",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1947"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/json"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"QZOpKTVziGOLspPXVfV3UKtVuiJbCX8hNpdIrCYcLJ4=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 04 Apr 2025 08:05:43 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-QZOpKTVziGOLspPXVfV3UKtVuiJbCX8hNpdIrCYcLJ4="
         }
       ]
     },
