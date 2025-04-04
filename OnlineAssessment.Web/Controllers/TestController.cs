@@ -10,6 +10,7 @@ using System.IO;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Logging;
 
 namespace OnlineAssessment.Web.Controllers
 {
@@ -17,11 +18,13 @@ namespace OnlineAssessment.Web.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly ILogger<TestController> _logger;
 
-        public TestController(AppDbContext context, IWebHostEnvironment environment)
+        public TestController(AppDbContext context, IWebHostEnvironment environment, ILogger<TestController> logger)
         {
             _context = context;
             _environment = environment;
+            _logger = logger;
         }
 
         // View action for test list page
@@ -165,6 +168,9 @@ namespace OnlineAssessment.Web.Controllers
                 {
                     jsonContent = await reader.ReadToEndAsync();
                 }
+
+                // Log the received JSON content
+                _logger.LogInformation("Received JSON content: {JsonContent}", jsonContent);
 
                 var questions = JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent);
                 if (questions == null || !questions.Any())
@@ -452,57 +458,121 @@ namespace OnlineAssessment.Web.Controllers
                     jsonContent = await reader.ReadToEndAsync();
                 }
 
-                var questions = JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent);
-                if (questions == null || !questions.Any())
+                // Log the received JSON content
+                _logger.LogInformation("Received JSON content: {JsonContent}", jsonContent);
+
+                try
                 {
-                    return Json(new { success = false, message = "Invalid JSON format or empty questions" });
-                }
-
-                foreach (var questionDto in questions)
-                {
-                    if (string.IsNullOrWhiteSpace(questionDto.Text))
+                    // Deserialize the root object
+                    var rootObject = JsonSerializer.Deserialize<JsonDocument>(jsonContent);
+                    if (rootObject == null)
                     {
-                        return Json(new { success = false, message = "Question text cannot be empty" });
+                        return Json(new { success = false, message = "Invalid JSON format: Could not parse JSON document" });
                     }
 
-                    if (questionDto.Type != QuestionType.ShortAnswer)
+                    // Get the codingQuestions array
+                    if (!rootObject.RootElement.TryGetProperty("codingQuestions", out var questionsElement))
                     {
-                        return Json(new { success = false, message = "All questions must be of type ShortAnswer (1) for coding questions" });
+                        return Json(new { success = false, message = "Invalid JSON format: Missing 'codingQuestions' property" });
                     }
 
-                    if (questionDto.TestCases == null || !questionDto.TestCases.Any())
+                    // Deserialize the questions
+                    var questions = JsonSerializer.Deserialize<List<QuestionDto>>(questionsElement.GetRawText(), new JsonSerializerOptions
                     {
-                        return Json(new { success = false, message = "Coding questions must have at least one test case" });
+                        PropertyNameCaseInsensitive = true
+                    });
+                    
+                    if (questions == null || !questions.Any())
+                    {
+                        return Json(new { success = false, message = "No questions found in the file" });
                     }
 
-                    var question = new Question
+                    foreach (var questionDto in questions)
                     {
-                        Text = questionDto.Text,
-                        Type = questionDto.Type,
-                        TestId = testId
-                    };
-
-                    _context.Questions.Add(question);
-                    await _context.SaveChangesAsync();
-
-                    foreach (var testCaseDto in questionDto.TestCases)
-                    {
-                        if (string.IsNullOrWhiteSpace(testCaseDto.Input) || string.IsNullOrWhiteSpace(testCaseDto.ExpectedOutput))
+                        // Validate required fields
+                        if (string.IsNullOrWhiteSpace(questionDto.Text))
                         {
-                            return Json(new { success = false, message = "Test case input and expected output cannot be empty" });
+                            return Json(new { success = false, message = "Question text cannot be empty" });
                         }
 
-                        _context.TestCases.Add(new TestCase
+                        if (questionDto.Type != QuestionType.ShortAnswer)
                         {
-                            Input = testCaseDto.Input,
-                            ExpectedOutput = testCaseDto.ExpectedOutput,
-                            QuestionId = question.Id
-                        });
-                    }
-                }
+                            return Json(new { success = false, message = "All questions must be of type ShortAnswer (1) for coding questions" });
+                        }
 
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Coding questions uploaded and saved successfully" });
+                        if (questionDto.TestCases == null || !questionDto.TestCases.Any())
+                        {
+                            return Json(new { success = false, message = "Coding questions must have at least one test case" });
+                        }
+
+                        if (string.IsNullOrWhiteSpace(questionDto.FunctionName))
+                        {
+                            return Json(new { success = false, message = "Function name is required for coding questions" });
+                        }
+
+                        if (string.IsNullOrWhiteSpace(questionDto.ReturnType))
+                        {
+                            return Json(new { success = false, message = "Return type is required for coding questions" });
+                        }
+
+                        if (questionDto.Parameters == null || !questionDto.Parameters.Any())
+                        {
+                            return Json(new { success = false, message = "At least one parameter is required for coding questions" });
+                        }
+
+                        if (questionDto.StarterCode == null || !questionDto.StarterCode.Any())
+                        {
+                            return Json(new { success = false, message = "Starter code is required for at least one programming language" });
+                        }
+
+                        // Create the question
+                        var question = new Question
+                        {
+                            Text = questionDto.Text,
+                            Type = questionDto.Type,
+                            TestId = testId,
+                            FunctionName = questionDto.FunctionName,
+                            ReturnType = questionDto.ReturnType,
+                            ReturnDescription = questionDto.ReturnDescription,
+                            Constraints = questionDto.Constraints,
+                            StarterCode = questionDto.StarterCode,
+                            Parameters = questionDto.Parameters
+                        };
+
+                        _context.Questions.Add(question);
+                        await _context.SaveChangesAsync();
+
+                        // Add test cases
+                        foreach (var testCaseDto in questionDto.TestCases)
+                        {
+                            if (string.IsNullOrWhiteSpace(testCaseDto.Input) || string.IsNullOrWhiteSpace(testCaseDto.ExpectedOutput))
+                            {
+                                return Json(new { success = false, message = "Test case input and expected output cannot be empty" });
+                            }
+
+                            _context.TestCases.Add(new TestCase
+                            {
+                                Input = testCaseDto.Input,
+                                ExpectedOutput = testCaseDto.ExpectedOutput,
+                                Explanation = testCaseDto.Explanation,
+                                QuestionId = question.Id
+                            });
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Coding questions uploaded and saved successfully" });
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "JSON deserialization error");
+                    return Json(new { success = false, message = $"Invalid JSON format: {ex.Message}" });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing file");
+                    return Json(new { success = false, message = $"Error processing file: {ex.Message}" });
+                }
             }
             catch (JsonException ex)
             {
@@ -530,7 +600,7 @@ namespace OnlineAssessment.Web.Controllers
         // Create a new test
         [HttpPost("create")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateTest([FromBody] TestCreationDto testDto)
+        public async Task<IActionResult> CreateTest([FromBody] Models.TestCreationDto testDto)
         {
             try
             {
@@ -618,53 +688,5 @@ namespace OnlineAssessment.Web.Controllers
             var tests = await _context.Tests.ToListAsync();
             return Ok(tests);
         }
-    }
-
-    // Add these DTO classes at the end of the file
-    public class TestCreationDto
-    {
-        [Required]
-        public string Title { get; set; } = string.Empty;
-        
-        public string? Description { get; set; }
-        
-        [Required]
-        [Range(1, 1440)]
-        public int DurationMinutes { get; set; }
-        
-        public List<QuestionDto> Questions { get; set; } = new();
-    }
-
-    public class QuestionDto
-    {
-        [Required]
-        public string Text { get; set; } = string.Empty;
-        
-        [Required]
-        public QuestionType Type { get; set; }
-        
-        public int TestId { get; set; }
-        
-        public List<AnswerOptionDto> AnswerOptions { get; set; } = new();
-        
-        public List<TestCaseDto> TestCases { get; set; } = new();
-    }
-
-    public class AnswerOptionDto
-    {
-        [Required]
-        public string Text { get; set; } = string.Empty;
-        
-        [Required]
-        public bool IsCorrect { get; set; }
-    }
-
-    public class TestCaseDto
-    {
-        [Required]
-        public string Input { get; set; } = string.Empty;
-        
-        [Required]
-        public string ExpectedOutput { get; set; } = string.Empty;
     }
 }

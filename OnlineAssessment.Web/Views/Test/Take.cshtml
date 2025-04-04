@@ -14,32 +14,104 @@
             height: 500px;
             border: 1px solid #ddd;
             margin-bottom: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .test-case-panel {
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 8px;
             margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
         .test-case-header {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1rem;
             background-color: #f8f9fa;
             border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         .test-case-content {
             padding: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
         }
         .test-case-result {
             padding: 1rem;
             margin-top: 1rem;
-            border-radius: 4px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
         .result-success {
             background-color: #d4edda;
             color: #155724;
+            border: 1px solid #c3e6cb;
         }
         .result-error {
             background-color: #f8d7da;
             color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .code-editor-wrapper {
+            position: relative;
+        }
+        .editor-toolbar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+        }
+        .run-code-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .run-code-btn:hover {
+            background-color: #218838;
+        }
+        .run-code-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .test-case {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e9ecef;
+        }
+        .test-case pre {
+            background-color: #2d2d2d;
+            color: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+        }
+        .test-case strong {
+            color: #495057;
+        }
+        .tab-content {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+        .question-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
     </style>
 }
@@ -141,7 +213,13 @@
                                     @for (int i = 0; i < codingQuestions.Count; i++)
                                     {
                                         var question = codingQuestions[i];
-                                        <div class="question-section mb-4 @(i == 0 ? "" : "d-none")" data-question-id="@question.Id">
+                                        var starterCode = question.StarterCode != null && question.StarterCode.ContainsKey("java") 
+                                            ? question.StarterCode["java"] 
+                                            : "// Write your code here\n";
+                                            
+                                        <div class="question-section mb-4 @(i == 0 ? "" : "d-none")" 
+                                             data-question-id="@question.Id"
+                                             data-starter-code="@starterCode">
                                             <div class="d-flex justify-content-between align-items-center mb-3">
                                                 <h5>Coding Question @(i + 1) of @codingQuestions.Count</h5>
                                                 <div class="question-navigation">
@@ -162,36 +240,112 @@
                                             
                                             <div class="question-content">
                                                 <div class="row">
-                                                    <div class="col-md-8">
-                                                        <div class="mb-4">
-                                                            <h6 class="fw-bold">Problem Description</h6>
-                                                            <p class="lead">@question.Text</p>
-                                                        </div>
-                                                        <div class="editor-container" id="editor_@question.Id"></div>
-                                                        <input type="hidden" name="question_@question.Id" class="coding-answer" required>
-                                                        <div class="mt-3">
-                                                            <button type="button" class="btn btn-primary run-code" data-question-id="@question.Id">
-                                                                <i class="fas fa-play"></i> Run Code
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                                    <!-- Left Column - Question Details -->
                                                     <div class="col-md-4">
+                                                        <div class="card mb-3">
+                                                            <div class="card-header bg-light">
+                                                                <h6 class="mb-0">Problem Description</h6>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <p class="lead">@question.Text</p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        @if (question.Parameters?.Any() == true)
+                                                        {
+                                                            <div class="card mb-3">
+                                                                <div class="card-header bg-light">
+                                                                    <h6 class="mb-0">Parameters</h6>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <ul class="list-unstyled mb-0">
+                                                                        @foreach (var param in question.Parameters)
+                                                                        {
+                                                                            <li class="mb-2">
+                                                                                <strong>@param.Name</strong> (@param.Type)
+                                                                                <p class="text-muted mb-0">@param.Description</p>
+                                                                            </li>
+                                                                        }
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        
+                                                        @if (!string.IsNullOrEmpty(question.ReturnType))
+                                                        {
+                                                            <div class="card mb-3">
+                                                                <div class="card-header bg-light">
+                                                                    <h6 class="mb-0">Return Type</h6>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <p class="mb-0">
+                                                                        <strong>@question.ReturnType</strong>
+                                                                        @if (!string.IsNullOrEmpty(question.ReturnDescription))
+                                                                        {
+                                                                            <span class="text-muted">- @question.ReturnDescription</span>
+                                                                        }
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        
+                                                        @if (question.Constraints?.Any() == true)
+                                                        {
+                                                            <div class="card mb-3">
+                                                                <div class="card-header bg-light">
+                                                                    <h6 class="mb-0">Constraints</h6>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <ul class="mb-0">
+                                                                        @foreach (var constraint in question.Constraints)
+                                                                        {
+                                                                            <li>@constraint</li>
+                                                                        }
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+
+                                                    <!-- Right Column - Code Editor and Test Cases -->
+                                                    <div class="col-md-8">
+                                                        <div class="code-editor-wrapper mb-4">
+                                                            <div class="editor-container" id="editor_@question.Id"></div>
+                                                            <div class="editor-toolbar">
+                                                                <button type="button" class="run-code-btn" data-question-id="@question.Id">
+                                                                    <i class="fas fa-play"></i> Run Code
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <input type="hidden" name="question_@question.Id" class="coding-answer" required>
+
                                                         <div class="test-case-panel">
                                                             <div class="test-case-header">
                                                                 <h6 class="mb-0">Test Cases</h6>
+                                                                <span class="badge bg-secondary">@question.TestCases.Count</span>
                                                             </div>
                                                             <div class="test-case-content">
                                                                 <div class="test-cases" id="testCases_@question.Id">
-                                                                    <div class="test-case mb-3">
-                                                                        <div class="mb-2">
-                                                                            <strong>Input:</strong>
-                                                                            <pre class="mb-1"><code>root = [3,5,1,6,2,0,8,null,null,7,4]</code></pre>
+                                                                    @foreach (var testCase in question.TestCases)
+                                                                    {
+                                                                        <div class="test-case">
+                                                                            <div class="mb-2">
+                                                                                <strong>Input:</strong>
+                                                                                <pre><code>@testCase.Input</code></pre>
+                                                                            </div>
+                                                                            <div>
+                                                                                <strong>Expected Output:</strong>
+                                                                                <pre><code>@testCase.ExpectedOutput</code></pre>
+                                                                            </div>
+                                                                            @if (!string.IsNullOrEmpty(testCase.Explanation))
+                                                                            {
+                                                                                <div class="mt-2">
+                                                                                    <strong>Explanation:</strong>
+                                                                                    <p class="mb-0 text-muted">@testCase.Explanation</p>
+                                                                                </div>
+                                                                            }
                                                                         </div>
-                                                                        <div>
-                                                                            <strong>Expected Output:</strong>
-                                                                            <pre class="mb-0"><code>5</code></pre>
-                                                                        </div>
-                                                                    </div>
+                                                                    }
                                                                 </div>
                                                                 <div class="test-case-result d-none" id="result_@question.Id">
                                                                 </div>
@@ -236,13 +390,27 @@
             // Initialize Monaco editors for each coding question
             document.querySelectorAll('.editor-container').forEach(container => {
                 const questionId = container.id.split('_')[1];
+                const questionElement = container.closest('.question-section');
+                const starterCode = questionElement.dataset.starterCode || '// Write your code here\n';
+                
                 const editor = monaco.editor.create(container, {
-                    value: '// Write your code here\n',
+                    value: starterCode,
                     language: 'java',
                     theme: 'vs-dark',
                     automaticLayout: true,
                     minimap: {
                         enabled: false
+                    },
+                    scrollBeyondLastLine: false,
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    roundedSelection: false,
+                    scrollbar: {
+                        vertical: 'visible',
+                        horizontal: 'visible',
+                        useShadows: false,
+                        verticalScrollbarSize: 10,
+                        horizontalScrollbarSize: 10
                     }
                 });
 

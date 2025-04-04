@@ -7,11 +7,18 @@ namespace OnlineAssessment.Web.Models
     {
         [Key]
         public int Id { get; set; }
-        public string Input { get; set; }
-        public string ExpectedOutput { get; set; }
+
+        [Required]
+        public required string Input { get; set; }
+
+        [Required]
+        public required string ExpectedOutput { get; set; }
+
+        public string? Explanation { get; set; }
+
         public int QuestionId { get; set; }
 
         [ForeignKey("QuestionId")]
-        public Question Question { get; set; }
+        public Question Question { get; set; } = null!;
     }
 }

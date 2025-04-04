@@ -35,45 +35,55 @@
                                 </div>
                                 <div class="card-body">
                                     <pre class="bg-light p-3 rounded">
-[
-  {
-    "Text": "Write a function to calculate the factorial of a number",
-    "Type": 1,
-    "TestId": @Model.Id,
-    "TestCases": [
-      {
-        "Input": "5",
-        "ExpectedOutput": "120"
-      },
-      {
-        "Input": "0",
-        "ExpectedOutput": "1"
+{
+  "codingQuestions": [
+    {
+      "text": "Reverse Array",
+      "type": 1,
+      "testId": @Model.Id,
+      "description": "An array is a data structure that stores elements of the same type in a contiguous block of memory. In an array, A, of size N, each memory location has some unique index, i (where 0 ≤ i < N), that can be referenced as A[i] or Ai.\n\nYour task is to reverse an array of integers.",
+      "functionName": "reverseArray",
+      "parameters": [
+        {
+          "name": "a",
+          "type": "List<Integer>",
+          "description": "the array to reverse"
+        }
+      ],
+      "returnType": "List<Integer>",
+      "returnDescription": "the reversed array",
+      "constraints": [
+        "1 ≤ N ≤ 10^3",
+        "1 ≤ A[i] ≤ 10^4, where A[i] is the i-th integer in A"
+      ],
+      "testCases": [
+        {
+          "input": "[1, 2, 3]",
+          "expectedOutput": "[3, 2, 1]",
+          "explanation": "The array is reversed"
+        }
+      ],
+      "starterCode": {
+        "java": "public static List<Integer> reverseArray(List<Integer> a) {\n    // Write your code here\n}",
+        "python": "def reverse_array(a):\n    # Write your code here\n    pass",
+        "javascript": "function reverseArray(a) {\n    // Write your code here\n}"
       }
-    ]
-  },
-  {
-    "Text": "Write a function to check if a string is a palindrome",
-    "Type": 1,
-    "TestId": @Model.Id,
-    "TestCases": [
-      {
-        "Input": "racecar",
-        "ExpectedOutput": "true"
-      },
-      {
-        "Input": "hello",
-        "ExpectedOutput": "false"
-      }
-    ]
-  }
-]</pre>
+    }
+  ]
+}</pre>
                                     <div class="mt-3">
                                         <h6>Notes:</h6>
                                         <ul>
-                                            <li><code>Text</code>: Required, the coding question text (case sensitive)</li>
-                                            <li><code>Type</code>: Must be 1 for Coding questions (case sensitive)</li>
-                                            <li><code>TestId</code>: Required, must match the current test ID (case sensitive)</li>
-                                            <li><code>TestCases</code>: Required, at least one test case with Input and ExpectedOutput (case sensitive)</li>
+                                            <li><code>text</code>: Required, the coding question text (case sensitive)</li>
+                                            <li><code>type</code>: Must be 1 for Coding questions (case sensitive)</li>
+                                            <li><code>testId</code>: Required, must match the current test ID (case sensitive)</li>
+                                            <li><code>functionName</code>: Required, the name of the function to implement</li>
+                                            <li><code>parameters</code>: Required, list of parameters with name, type, and description</li>
+                                            <li><code>returnType</code>: Required, the return type of the function</li>
+                                            <li><code>returnDescription</code>: Optional, description of the return value</li>
+                                            <li><code>constraints</code>: Optional, list of constraints for the problem</li>
+                                            <li><code>testCases</code>: Required, at least one test case with input, expectedOutput, and optional explanation</li>
+                                            <li><code>starterCode</code>: Required, template code for different programming languages</li>
                                         </ul>
                                     </div>
                                 </div>

@@ -76,6 +76,24 @@ namespace OnlineAssessment.Web.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ConstraintsJson")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("FunctionName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ParametersJson")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ReturnDescription")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ReturnType")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("StarterCodeJson")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("TestId")
                         .HasColumnType("int");
 
@@ -130,6 +148,9 @@ namespace OnlineAssessment.Web.Migrations
 
                     b.Property<string>("ExpectedOutput")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Explanation")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Input")

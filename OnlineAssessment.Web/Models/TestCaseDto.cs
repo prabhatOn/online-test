@@ -6,5 +6,6 @@ namespace OnlineAssessment.Web.Models
     {
         public required string Input { get; set; }
         public required string ExpectedOutput { get; set; }
+        public string? Explanation { get; set; }
     }
 }
