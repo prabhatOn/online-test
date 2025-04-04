@@ -245,6 +245,10 @@
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
     },
     {
+      "Id": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\68049f31-237e-440a-88b8-cbd5b0a301a0_demo.json",
+      "PackagePath": "staticwebassets\\uploads\\68049f31-237e-440a-88b8-cbd5b0a301a0_demo.json"
+    },
+    {
       "Id": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\74629eca-da96-4af0-bc8b-26a4a748b68b_demo.json",
       "PackagePath": "staticwebassets\\uploads\\74629eca-da96-4af0-bc8b-26a4a748b68b_demo.json"
     },

@@ -77,6 +77,7 @@ namespace OnlineAssessment.Web.Controllers
         {
             var test = await _context.Tests
                 .Include(t => t.Questions)
+                    .ThenInclude(q => q.AnswerOptions)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (test == null)

@@ -1098,6 +1098,24 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\OnlineAssessment.Web.hbkgot82kp.bundle.scp.css'))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\68049f31-237e-440a-88b8-cbd5b0a301a0_demo.json'))">
+      <SourceType>Package</SourceType>
+      <SourceId>OnlineAssessment.Web</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/OnlineAssessment.Web</BasePath>
+      <RelativePath>uploads/68049f31-237e-440a-88b8-cbd5b0a301a0_demo.json</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>3vmglooyvx</Fingerprint>
+      <Integrity>QZOpKTVziGOLspPXVfV3UKtVuiJbCX8hNpdIrCYcLJ4=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\68049f31-237e-440a-88b8-cbd5b0a301a0_demo.json'))</OriginalItemSpec>
+    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\74629eca-da96-4af0-bc8b-26a4a748b68b_demo.json'))">
       <SourceType>Package</SourceType>
       <SourceId>OnlineAssessment.Web</SourceId>
