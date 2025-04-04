@@ -2,47 +2,97 @@
 
 @{
     ViewData["Title"] = "Take Test";
+    var totalQuestions = Model.Questions.Count;
 }
 
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <h2>@Model.Title</h2>
-                    <p class="mb-0">Duration: @Model.DurationMinutes minutes</p>
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0">@Model.Title</h2>
+                            <small>Duration: @Model.DurationMinutes minutes</small>
+                        </div>
+                        <div class="text-end">
+                            <div id="timer" class="h4 mb-0"></div>
+                            <small>Time Remaining</small>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
+                    <div class="progress mb-4">
+                        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    
                     <form id="testForm">
-                        @foreach (var question in Model.Questions)
-                        {
-                            <div class="mb-4">
-                                <h5>@question.Text</h5>
-                                @if (question.Type == QuestionType.MultipleChoice)
-                                {
-                                    @if (question.AnswerOptions != null)
-                                    {
-                                        foreach (var option in question.AnswerOptions)
+                        <div id="questionsContainer">
+                            @for (int i = 0; i < Model.Questions.Count; i++)
+                            {
+                                var question = Model.Questions.ElementAt(i);
+                                <div class="question-section mb-4 @(i == 0 ? "" : "d-none")" data-question-id="@question.Id">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5>Question @(i + 1) of @totalQuestions</h5>
+                                        <div class="question-navigation">
+                                            @if (i > 0)
+                                            {
+                                                <button type="button" class="btn btn-outline-primary btn-sm me-2 prev-question">
+                                                    <i class="fas fa-arrow-left"></i> Previous
+                                                </button>
+                                            }
+                                            @if (i < totalQuestions - 1)
+                                            {
+                                                <button type="button" class="btn btn-outline-primary btn-sm next-question">
+                                                    Next <i class="fas fa-arrow-right"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="question-content">
+                                        <p class="lead">@question.Text</p>
+                                        
+                                        @if (question.Type == QuestionType.MultipleChoice)
                                         {
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="question_@question.Id" value="@option.Id" required>
-                                                <label class="form-check-label">
-                                                    @option.Text
-                                                </label>
+                                            @if (question.AnswerOptions != null)
+                                            {
+                                                <div class="answer-options">
+                                                    @foreach (var option in question.AnswerOptions)
+                                                    {
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="radio" 
+                                                                   name="question_@question.Id" 
+                                                                   value="@option.Id" 
+                                                                   id="option_@option.Id"
+                                                                   required>
+                                                            <label class="form-check-label" for="option_@option.Id">
+                                                                @option.Text
+                                                            </label>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+                                        else if (question.Type == QuestionType.ShortAnswer)
+                                        {
+                                            <div class="form-group">
+                                                <textarea class="form-control" 
+                                                          name="question_@question.Id" 
+                                                          rows="4" 
+                                                          required
+                                                          placeholder="Enter your answer here..."></textarea>
                                             </div>
                                         }
-                                    }
-                                }
-                                else if (question.Type == QuestionType.ShortAnswer)
-                                {
-                                    <div class="form-group">
-                                        <input type="text" class="form-control" name="question_@question.Id" required>
                                     </div>
-                                }
-                            </div>
-                        }
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-primary">Submit Test</button>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="text-end mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Submit Test
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -53,33 +103,137 @@
 
 @section Scripts {
     <script>
-        document.getElementById('testForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        document.addEventListener('DOMContentLoaded', function() {
+            const testForm = document.getElementById('testForm');
+            const questionsContainer = document.getElementById('questionsContainer');
+            const progressBar = document.getElementById('progressBar');
+            const timerElement = document.getElementById('timer');
+            const totalQuestions = @totalQuestions;
+            let currentQuestionIndex = 0;
+            let timeLeft = @Model.DurationMinutes * 60; // Convert minutes to seconds
             
-            const formData = new FormData(this);
-            const answers = {};
+            // Initialize timer
+            updateTimer();
+            const timerInterval = setInterval(updateTimer, 1000);
             
-            for (let [key, value] of formData.entries()) {
-                answers[key] = value;
-            }
-
-            fetch(`/api/tests/submit/${@Model.Id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                },
-                body: JSON.stringify(answers)
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('Test submitted successfully!');
-                    window.location.href = '/Test/Index';
-                } else {
-                    alert('Failed to submit test');
+            // Initialize progress bar
+            updateProgress();
+            
+            // Handle question navigation
+            document.querySelectorAll('.next-question').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (currentQuestionIndex < totalQuestions - 1) {
+                        navigateQuestion(currentQuestionIndex + 1);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.prev-question').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (currentQuestionIndex > 0) {
+                        navigateQuestion(currentQuestionIndex - 1);
+                    }
+                });
+            });
+            
+            // Handle form submission
+            testForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (confirm('Are you sure you want to submit the test? You cannot change your answers after submission.')) {
+                    const formData = new FormData(this);
+                    const answers = {};
+                    
+                    for (let [key, value] of formData.entries()) {
+                        answers[key] = value;
+                    }
+                    
+                    fetch(`/api/tests/submit/${@Model.Id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('token')
+                        },
+                        body: JSON.stringify(answers)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Test submitted successfully!');
+                            window.location.href = '/Test/Index';
+                        } else {
+                            alert('Failed to submit test');
+                        }
+                    })
+                    .catch(error => console.error('Error submitting test:', error));
                 }
-            })
-            .catch(error => console.error('Error submitting test:', error));
+            });
+            
+            function updateTimer() {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert('Time is up! Your test will be submitted automatically.');
+                    testForm.dispatchEvent(new Event('submit'));
+                    return;
+                }
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                timeLeft--;
+            }
+            
+            function updateProgress() {
+                const answeredQuestions = document.querySelectorAll('input:checked, textarea:not(:empty)').length;
+                const progress = (answeredQuestions / totalQuestions) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressBar.setAttribute('aria-valuenow', progress);
+            }
+            
+            function navigateQuestion(index) {
+                const currentQuestion = document.querySelector(`.question-section:nth-child(${currentQuestionIndex + 1})`);
+                const nextQuestion = document.querySelector(`.question-section:nth-child(${index + 1})`);
+                
+                currentQuestion.classList.add('d-none');
+                nextQuestion.classList.remove('d-none');
+                currentQuestionIndex = index;
+                
+                // Update progress when navigating
+                updateProgress();
+            }
+            
+            // Update progress when answers change
+            testForm.addEventListener('change', updateProgress);
         });
     </script>
+    
+    <style>
+        .question-section {
+            transition: all 0.3s ease;
+        }
+        
+        .answer-options .form-check {
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .answer-options .form-check:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .answer-options .form-check-input:checked + .form-check-label {
+            font-weight: bold;
+        }
+        
+        #timer {
+            font-family: monospace;
+            font-size: 2rem;
+        }
+        
+        .progress {
+            height: 10px;
+        }
+    </style>
 } 

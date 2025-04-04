@@ -1098,23 +1098,23 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\OnlineAssessment.Web.hbkgot82kp.bundle.scp.css'))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\01acf5b5-b8c4-469d-b34d-6c80731aa1c6_demo.json'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\74629eca-da96-4af0-bc8b-26a4a748b68b_demo.json'))">
       <SourceType>Package</SourceType>
       <SourceId>OnlineAssessment.Web</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
       <BasePath>_content/OnlineAssessment.Web</BasePath>
-      <RelativePath>uploads/01acf5b5-b8c4-469d-b34d-6c80731aa1c6_demo.json</RelativePath>
+      <RelativePath>uploads/74629eca-da96-4af0-bc8b-26a4a748b68b_demo.json</RelativePath>
       <AssetKind>All</AssetKind>
       <AssetMode>All</AssetMode>
       <AssetRole>Primary</AssetRole>
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>qdmz8oyjs0</Fingerprint>
-      <Integrity>DqRg6ngse1wYuFAZFaSJz5x2M2KwSYl0M+snC4AJkmE=</Integrity>
+      <Fingerprint>7nvgfgeufl</Fingerprint>
+      <Integrity>zexXFQDvsFztnXmCQXB09i/kV0oRML8ng92C61pq6QQ=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\01acf5b5-b8c4-469d-b34d-6c80731aa1c6_demo.json'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\74629eca-da96-4af0-bc8b-26a4a748b68b_demo.json'))</OriginalItemSpec>
     </StaticWebAsset>
   </ItemGroup>
 </Project>

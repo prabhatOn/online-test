@@ -70,7 +70,8 @@ namespace OnlineAssessment.Web.Controllers
         }
 
         // View action for taking a test
-        [HttpGet("take/{id}")]
+        [HttpGet]
+        [Route("Test/Take/{id}")]
         [Authorize]
         public async Task<IActionResult> Take(int id)
         {
