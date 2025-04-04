@@ -1,0 +1,12 @@
+I:\online-test\online-test\OnlineAssessment.Compiler\bin\Debug\net8.0\OnlineAssessment.Compiler.deps.json
+I:\online-test\online-test\OnlineAssessment.Compiler\bin\Debug\net8.0\OnlineAssessment.Compiler.dll
+I:\online-test\online-test\OnlineAssessment.Compiler\bin\Debug\net8.0\OnlineAssessment.Compiler.pdb
+I:\online-test\online-test\OnlineAssessment.Compiler\obj\Debug\net8.0\OnlineAssessment.Compiler.GeneratedMSBuildEditorConfig.editorconfig
+I:\online-test\online-test\OnlineAssessment.Compiler\obj\Debug\net8.0\OnlineAssessment.Compiler.AssemblyInfoInputs.cache
+I:\online-test\online-test\OnlineAssessment.Compiler\obj\Debug\net8.0\OnlineAssessment.Compiler.AssemblyInfo.cs
+I:\online-test\online-test\OnlineAssessment.Compiler\obj\Debug\net8.0\OnlineAssessment.Compiler.csproj.CoreCompileInputs.cache
+I:\online-test\online-test\OnlineAssessment.Compiler\obj\Debug\net8.0\OnlineAssessment.Compiler.sourcelink.json
+I:\online-test\online-test\OnlineAssessment.Compiler\obj\Debug\net8.0\OnlineAssessment.Compiler.dll
+I:\online-test\online-test\OnlineAssessment.Compiler\obj\Debug\net8.0\refint\OnlineAssessment.Compiler.dll
+I:\online-test\online-test\OnlineAssessment.Compiler\obj\Debug\net8.0\OnlineAssessment.Compiler.pdb
+I:\online-test\online-test\OnlineAssessment.Compiler\obj\Debug\net8.0\ref\OnlineAssessment.Compiler.dll

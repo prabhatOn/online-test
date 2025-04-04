@@ -1,0 +1,12 @@
+I:\online-test\online-test\OnlineAssessment.Infrastructure\bin\Debug\net8.0\OnlineAssessment.Infrastructure.deps.json
+I:\online-test\online-test\OnlineAssessment.Infrastructure\bin\Debug\net8.0\OnlineAssessment.Infrastructure.dll
+I:\online-test\online-test\OnlineAssessment.Infrastructure\bin\Debug\net8.0\OnlineAssessment.Infrastructure.pdb
+I:\online-test\online-test\OnlineAssessment.Infrastructure\obj\Debug\net8.0\OnlineAssessment.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+I:\online-test\online-test\OnlineAssessment.Infrastructure\obj\Debug\net8.0\OnlineAssessment.Infrastructure.AssemblyInfoInputs.cache
+I:\online-test\online-test\OnlineAssessment.Infrastructure\obj\Debug\net8.0\OnlineAssessment.Infrastructure.AssemblyInfo.cs
+I:\online-test\online-test\OnlineAssessment.Infrastructure\obj\Debug\net8.0\OnlineAssessment.Infrastructure.csproj.CoreCompileInputs.cache
+I:\online-test\online-test\OnlineAssessment.Infrastructure\obj\Debug\net8.0\OnlineAssessment.Infrastructure.sourcelink.json
+I:\online-test\online-test\OnlineAssessment.Infrastructure\obj\Debug\net8.0\OnlineAssessment.Infrastructure.dll
+I:\online-test\online-test\OnlineAssessment.Infrastructure\obj\Debug\net8.0\refint\OnlineAssessment.Infrastructure.dll
+I:\online-test\online-test\OnlineAssessment.Infrastructure\obj\Debug\net8.0\OnlineAssessment.Infrastructure.pdb
+I:\online-test\online-test\OnlineAssessment.Infrastructure\obj\Debug\net8.0\ref\OnlineAssessment.Infrastructure.dll

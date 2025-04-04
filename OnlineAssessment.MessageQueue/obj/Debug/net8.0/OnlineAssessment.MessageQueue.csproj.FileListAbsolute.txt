@@ -1,0 +1,12 @@
+I:\online-test\online-test\OnlineAssessment.MessageQueue\bin\Debug\net8.0\OnlineAssessment.MessageQueue.deps.json
+I:\online-test\online-test\OnlineAssessment.MessageQueue\bin\Debug\net8.0\OnlineAssessment.MessageQueue.dll
+I:\online-test\online-test\OnlineAssessment.MessageQueue\bin\Debug\net8.0\OnlineAssessment.MessageQueue.pdb
+I:\online-test\online-test\OnlineAssessment.MessageQueue\obj\Debug\net8.0\OnlineAssessment.MessageQueue.GeneratedMSBuildEditorConfig.editorconfig
+I:\online-test\online-test\OnlineAssessment.MessageQueue\obj\Debug\net8.0\OnlineAssessment.MessageQueue.AssemblyInfoInputs.cache
+I:\online-test\online-test\OnlineAssessment.MessageQueue\obj\Debug\net8.0\OnlineAssessment.MessageQueue.AssemblyInfo.cs
+I:\online-test\online-test\OnlineAssessment.MessageQueue\obj\Debug\net8.0\OnlineAssessment.MessageQueue.csproj.CoreCompileInputs.cache
+I:\online-test\online-test\OnlineAssessment.MessageQueue\obj\Debug\net8.0\OnlineAssessment.MessageQueue.sourcelink.json
+I:\online-test\online-test\OnlineAssessment.MessageQueue\obj\Debug\net8.0\OnlineAssessment.MessageQueue.dll
+I:\online-test\online-test\OnlineAssessment.MessageQueue\obj\Debug\net8.0\refint\OnlineAssessment.MessageQueue.dll
+I:\online-test\online-test\OnlineAssessment.MessageQueue\obj\Debug\net8.0\OnlineAssessment.MessageQueue.pdb
+I:\online-test\online-test\OnlineAssessment.MessageQueue\obj\Debug\net8.0\ref\OnlineAssessment.MessageQueue.dll

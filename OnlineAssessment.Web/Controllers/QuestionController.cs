@@ -111,5 +111,74 @@ namespace OnlineAssessment.Web.Controllers
             await _context.SaveChangesAsync();
             return Ok(new { message = "Question deleted successfully!" });
         }
+
+        [HttpPost("upload-json")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UploadJsonQuestions([FromBody] List<QuestionDto> questions)
+        {
+            if (questions == null || !questions.Any())
+            {
+                return BadRequest(new { message = "No questions provided" });
+            }
+
+            try
+            {
+                foreach (var questionDto in questions)
+                {
+                    if (string.IsNullOrWhiteSpace(questionDto.Text))
+                    {
+                        return BadRequest(new { message = "Question text cannot be empty" });
+                    }
+
+                    // Check if test exists
+                    var testExists = await _context.Tests.AnyAsync(t => t.Id == questionDto.TestId);
+                    if (!testExists)
+                    {
+                        return BadRequest(new { message = $"Test with ID {questionDto.TestId} does not exist" });
+                    }
+
+                    var question = new Question
+                    {
+                        Text = questionDto.Text,
+                        Type = questionDto.Type,
+                        TestId = questionDto.TestId
+                    };
+
+                    if (questionDto.Type == QuestionType.MultipleChoice)
+                    {
+                        if (questionDto.AnswerOptions == null || questionDto.AnswerOptions.Count < 2)
+                        {
+                            return BadRequest(new { message = "Multiple choice questions require at least 2 answer options" });
+                        }
+
+                        question.AnswerOptions = questionDto.AnswerOptions.Select(option => new AnswerOption
+                        {
+                            Text = option.Text,
+                            IsCorrect = option.IsCorrect
+                        }).ToList();
+                    }
+                    else if (questionDto.Type == QuestionType.ShortAnswer)
+                    {
+                        if (questionDto.TestCases != null && questionDto.TestCases.Any())
+                        {
+                            question.TestCases = questionDto.TestCases.Select(testCase => new TestCase
+                            {
+                                Input = testCase.Input,
+                                ExpectedOutput = testCase.ExpectedOutput
+                            }).ToList();
+                        }
+                    }
+
+                    _context.Questions.Add(question);
+                }
+
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Questions uploaded and stored successfully", count = questions.Count });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error storing questions", error = ex.Message });
+            }
+        }
     }
 }

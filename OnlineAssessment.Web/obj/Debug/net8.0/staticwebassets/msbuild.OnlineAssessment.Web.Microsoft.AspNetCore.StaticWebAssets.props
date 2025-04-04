@@ -1080,77 +1080,41 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\lib\jquery\LICENSE.txt'))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\OnlineAssessment.Web.f7s3ty6tup.bundle.scp.css'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\OnlineAssessment.Web.hbkgot82kp.bundle.scp.css'))">
       <SourceType>Package</SourceType>
       <SourceId>OnlineAssessment.Web</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
       <BasePath>_content/OnlineAssessment.Web</BasePath>
-      <RelativePath>OnlineAssessment.Web.f7s3ty6tup.bundle.scp.css</RelativePath>
+      <RelativePath>OnlineAssessment.Web.hbkgot82kp.bundle.scp.css</RelativePath>
       <AssetKind>All</AssetKind>
       <AssetMode>Reference</AssetMode>
       <AssetRole>Primary</AssetRole>
       <RelatedAsset></RelatedAsset>
       <AssetTraitName>ScopedCss</AssetTraitName>
       <AssetTraitValue>ProjectBundle</AssetTraitValue>
-      <Fingerprint>f7s3ty6tup</Fingerprint>
-      <Integrity>danimO6kfduvkceYNsjHWv12PAkuNI7hS23FfiGV9X0=</Integrity>
+      <Fingerprint>hbkgot82kp</Fingerprint>
+      <Integrity>I4mrh26AjxDP4FpQsrH6aMxfmwo5UvDP8WDCYs/LIPA=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\OnlineAssessment.Web.f7s3ty6tup.bundle.scp.css'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\OnlineAssessment.Web.hbkgot82kp.bundle.scp.css'))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\0b603426-5101-442b-877a-b70aa2f989f0_demo.json'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\01acf5b5-b8c4-469d-b34d-6c80731aa1c6_demo.json'))">
       <SourceType>Package</SourceType>
       <SourceId>OnlineAssessment.Web</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
       <BasePath>_content/OnlineAssessment.Web</BasePath>
-      <RelativePath>uploads/0b603426-5101-442b-877a-b70aa2f989f0_demo.json</RelativePath>
+      <RelativePath>uploads/01acf5b5-b8c4-469d-b34d-6c80731aa1c6_demo.json</RelativePath>
       <AssetKind>All</AssetKind>
       <AssetMode>All</AssetMode>
       <AssetRole>Primary</AssetRole>
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>1z6446tjdj</Fingerprint>
-      <Integrity>Tej1lw6uUOFXLDHvJzl/sE6wGWYZi9Pa8glQNAFjTrM=</Integrity>
+      <Fingerprint>qdmz8oyjs0</Fingerprint>
+      <Integrity>DqRg6ngse1wYuFAZFaSJz5x2M2KwSYl0M+snC4AJkmE=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\0b603426-5101-442b-877a-b70aa2f989f0_demo.json'))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\25b6d0ac-ef82-4596-9209-a0c091d4e5a5_demo.json'))">
-      <SourceType>Package</SourceType>
-      <SourceId>OnlineAssessment.Web</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/OnlineAssessment.Web</BasePath>
-      <RelativePath>uploads/25b6d0ac-ef82-4596-9209-a0c091d4e5a5_demo.json</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>1z6446tjdj</Fingerprint>
-      <Integrity>Tej1lw6uUOFXLDHvJzl/sE6wGWYZi9Pa8glQNAFjTrM=</Integrity>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\25b6d0ac-ef82-4596-9209-a0c091d4e5a5_demo.json'))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\266ddd90-8c3a-47af-9091-193ddd4be213_demo.json'))">
-      <SourceType>Package</SourceType>
-      <SourceId>OnlineAssessment.Web</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/OnlineAssessment.Web</BasePath>
-      <RelativePath>uploads/266ddd90-8c3a-47af-9091-193ddd4be213_demo.json</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>1z6446tjdj</Fingerprint>
-      <Integrity>Tej1lw6uUOFXLDHvJzl/sE6wGWYZi9Pa8glQNAFjTrM=</Integrity>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\266ddd90-8c3a-47af-9091-193ddd4be213_demo.json'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\01acf5b5-b8c4-469d-b34d-6c80731aa1c6_demo.json'))</OriginalItemSpec>
     </StaticWebAsset>
   </ItemGroup>
 </Project>
