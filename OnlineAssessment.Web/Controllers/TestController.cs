@@ -252,6 +252,96 @@ namespace OnlineAssessment.Web.Controllers
                 return Json(new { success = false, message = "Error deleting test: " + ex.Message });
             }
         }
+
+        [HttpPost]
+        [Route("Test/Submit/{id}")]
+        [Authorize]
+        public async Task<IActionResult> Submit(int id, [FromBody] Dictionary<string, string> answers)
+        {
+            try
+            {
+                var test = await _context.Tests
+                    .Include(t => t.Questions)
+                        .ThenInclude(q => q.AnswerOptions)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
+                if (test == null)
+                {
+                    return NotFound();
+                }
+
+                int correctAnswers = 0;
+                int totalQuestions = test.Questions.Count;
+
+                foreach (var question in test.Questions)
+                {
+                    if (question.Type == QuestionType.MultipleChoice)
+                    {
+                        var selectedOptionId = answers.GetValueOrDefault($"question_{question.Id}");
+                        if (selectedOptionId != null)
+                        {
+                            var selectedOption = question.AnswerOptions.FirstOrDefault(a => a.Id.ToString() == selectedOptionId);
+                            if (selectedOption != null && selectedOption.IsCorrect)
+                            {
+                                correctAnswers++;
+                            }
+                        }
+                    }
+                    else if (question.Type == QuestionType.ShortAnswer)
+                    {
+                        var answer = answers.GetValueOrDefault($"question_{question.Id}");
+                        if (answer != null)
+                        {
+                            var testCase = question.TestCases.FirstOrDefault();
+                            if (testCase != null && answer.Trim().Equals(testCase.ExpectedOutput.Trim(), StringComparison.OrdinalIgnoreCase))
+                            {
+                                correctAnswers++;
+                            }
+                        }
+                    }
+                }
+
+                double score = (double)correctAnswers / totalQuestions * 100;
+
+                var result = new TestResult
+                {
+                    TestId = id,
+                    Username = User.Identity?.Name ?? "Anonymous",
+                    TotalQuestions = totalQuestions,
+                    CorrectAnswers = correctAnswers,
+                    Score = score
+                };
+
+                _context.TestResults.Add(result);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { 
+                    success = true, 
+                    redirectUrl = $"/Test/Result/{result.Id}" 
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error submitting test: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("Test/Result/{id}")]
+        [Authorize]
+        public async Task<IActionResult> Result(int id)
+        {
+            var result = await _context.TestResults
+                .Include(r => r.Test)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return View(result);
+        }
     }
 
     [Route("api/[controller]")]

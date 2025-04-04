@@ -1,0 +1,42 @@
+@model OnlineAssessment.Web.Models.TestResult
+
+@{
+    ViewData["Title"] = "Test Result";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Test Result</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Test Details</h4>
+                            <p><strong>Test:</strong> @Model.Test.Title</p>
+                            <p><strong>Submitted by:</strong> @Model.Username</p>
+                            <p><strong>Submitted at:</strong> @Model.SubmittedAt.ToString("g")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Score</h4>
+                            <div class="text-center">
+                                <h1 class="display-1 @(Model.Score >= 70 ? "text-success" : "text-danger")">
+                                    @Model.Score.ToString("0.0")%
+                                </h1>
+                                <p class="lead">
+                                    @Model.CorrectAnswers out of @Model.TotalQuestions questions correct
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="/Test/Index" class="btn btn-primary">Back to Tests</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

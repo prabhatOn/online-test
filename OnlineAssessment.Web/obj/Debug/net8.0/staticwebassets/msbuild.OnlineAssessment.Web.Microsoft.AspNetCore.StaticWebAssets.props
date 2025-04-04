@@ -1134,6 +1134,24 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\74629eca-da96-4af0-bc8b-26a4a748b68b_demo.json'))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\e23ae1d4-f268-4b56-9584-269205e51186_demo.json'))">
+      <SourceType>Package</SourceType>
+      <SourceId>OnlineAssessment.Web</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/OnlineAssessment.Web</BasePath>
+      <RelativePath>uploads/e23ae1d4-f268-4b56-9584-269205e51186_demo.json</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>3vmglooyvx</Fingerprint>
+      <Integrity>QZOpKTVziGOLspPXVfV3UKtVuiJbCX8hNpdIrCYcLJ4=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\e23ae1d4-f268-4b56-9584-269205e51186_demo.json'))</OriginalItemSpec>
+    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\f62f9d23-c16c-4637-8729-a1c4c39e390e_demo.json'))">
       <SourceType>Package</SourceType>
       <SourceId>OnlineAssessment.Web</SourceId>

@@ -148,7 +148,7 @@
                         answers[key] = value;
                     }
                     
-                    fetch(`/api/tests/submit/${@Model.Id}`, {
+                    fetch(`/Test/Submit/${@Model.Id}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -156,15 +156,18 @@
                         },
                         body: JSON.stringify(answers)
                     })
-                    .then(response => {
-                        if (response.ok) {
-                            alert('Test submitted successfully!');
-                            window.location.href = '/Test/Index';
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = data.redirectUrl;
                         } else {
-                            alert('Failed to submit test');
+                            alert('Failed to submit test: ' + data.message);
                         }
                     })
-                    .catch(error => console.error('Error submitting test:', error));
+                    .catch(error => {
+                        console.error('Error submitting test:', error);
+                        alert('Error submitting test. Please try again.');
+                    });
                 }
             });
             
