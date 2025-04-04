@@ -8,16 +8,19 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Text.Json;
+using Microsoft.AspNetCore.Hosting;
 
 namespace OnlineAssessment.Web.Controllers
 {
     public class TestController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public TestController(AppDbContext context)
+        public TestController(AppDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         // View action for test list page
@@ -83,22 +86,42 @@ namespace OnlineAssessment.Web.Controllers
             return View(test);
         }
 
+        [HttpGet]
+        [Route("Test/view-uploads")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult ViewUploads()
+        {
+            var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var files = Directory.GetFiles(uploadsFolder)
+                .Select(f => new FileInfo(f))
+                .Select(f => new
+                {
+                    Name = f.Name,
+                    Size = f.Length,
+                    LastModified = f.LastWriteTime,
+                    Path = $"/uploads/{f.Name}"
+                })
+                .ToList();
+
+            return View(files);
+        }
+
         [HttpPost]
-        [Route("upload-questions")]
+        [Route("Test/upload-questions")]
         [Authorize(Roles = "Admin")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadQuestions([FromForm] IFormFile file, [FromForm] int testId)
         {
             try
             {
-                if (file == null)
+                if (file == null || file.Length == 0)
                 {
-                    return Json(new { success = false, message = "No file was uploaded" });
-                }
-
-                if (file.Length == 0)
-                {
-                    return Json(new { success = false, message = "The uploaded file is empty" });
+                    return Json(new { success = false, message = "No file uploaded or file is empty" });
                 }
 
                 if (!file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
@@ -117,20 +140,30 @@ namespace OnlineAssessment.Web.Controllers
                     return Json(new { success = false, message = "Test not found" });
                 }
 
+                // Save file locally
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // Save the file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Read and process the file
                 string jsonContent;
-                using (var stream = file.OpenReadStream())
-                using (var reader = new StreamReader(stream))
+                using (var reader = new StreamReader(file.OpenReadStream()))
                 {
                     jsonContent = await reader.ReadToEndAsync();
                 }
 
-                if (string.IsNullOrWhiteSpace(jsonContent))
-                {
-                    return Json(new { success = false, message = "File is empty" });
-                }
-
-                var questions = System.Text.Json.JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent);
-
+                var questions = JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent);
                 if (questions == null || !questions.Any())
                 {
                     return Json(new { success = false, message = "Invalid JSON format or empty questions" });
@@ -153,56 +186,34 @@ namespace OnlineAssessment.Web.Controllers
                     _context.Questions.Add(question);
                     await _context.SaveChangesAsync();
 
-                    if (questionDto.Type == QuestionType.MultipleChoice)
+                    if (questionDto.Type == QuestionType.MultipleChoice && questionDto.AnswerOptions != null)
                     {
-                        if (questionDto.AnswerOptions == null || !questionDto.AnswerOptions.Any())
-                        {
-                            return Json(new { success = false, message = "Multiple choice questions must have answer options" });
-                        }
-
                         foreach (var optionDto in questionDto.AnswerOptions)
                         {
-                            if (string.IsNullOrWhiteSpace(optionDto.Text))
-                            {
-                                return Json(new { success = false, message = "Answer option text cannot be empty" });
-                            }
-
-                            var option = new AnswerOption
+                            _context.AnswerOptions.Add(new AnswerOption
                             {
                                 Text = optionDto.Text,
                                 IsCorrect = optionDto.IsCorrect,
                                 QuestionId = question.Id
-                            };
-                            _context.AnswerOptions.Add(option);
+                            });
                         }
                     }
-                    else if (questionDto.Type == QuestionType.ShortAnswer)
+                    else if (questionDto.Type == QuestionType.ShortAnswer && questionDto.TestCases != null)
                     {
-                        if (questionDto.TestCases == null || !questionDto.TestCases.Any())
-                        {
-                            return Json(new { success = false, message = "Short answer questions must have test cases" });
-                        }
-
                         foreach (var testCaseDto in questionDto.TestCases)
                         {
-                            if (string.IsNullOrWhiteSpace(testCaseDto.Input) || string.IsNullOrWhiteSpace(testCaseDto.ExpectedOutput))
-                            {
-                                return Json(new { success = false, message = "Test case input and expected output cannot be empty" });
-                            }
-
-                            var testCase = new TestCase
+                            _context.TestCases.Add(new TestCase
                             {
                                 Input = testCaseDto.Input,
                                 ExpectedOutput = testCaseDto.ExpectedOutput,
                                 QuestionId = question.Id
-                            };
-                            _context.TestCases.Add(testCase);
+                            });
                         }
                     }
                 }
 
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Questions uploaded successfully" });
+                return Json(new { success = true, message = "Questions uploaded and saved successfully" });
             }
             catch (JsonException ex)
             {

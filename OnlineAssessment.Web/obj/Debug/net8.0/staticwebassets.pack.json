@@ -245,6 +245,18 @@
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
     },
     {
+      "Id": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\0b603426-5101-442b-877a-b70aa2f989f0_demo.json",
+      "PackagePath": "staticwebassets\\uploads\\0b603426-5101-442b-877a-b70aa2f989f0_demo.json"
+    },
+    {
+      "Id": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\25b6d0ac-ef82-4596-9209-a0c091d4e5a5_demo.json",
+      "PackagePath": "staticwebassets\\uploads\\25b6d0ac-ef82-4596-9209-a0c091d4e5a5_demo.json"
+    },
+    {
+      "Id": "I:\\online-test\\online-test\\OnlineAssessment.Web\\wwwroot\\uploads\\266ddd90-8c3a-47af-9091-193ddd4be213_demo.json",
+      "PackagePath": "staticwebassets\\uploads\\266ddd90-8c3a-47af-9091-193ddd4be213_demo.json"
+    },
+    {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.OnlineAssessment.Web.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
     },

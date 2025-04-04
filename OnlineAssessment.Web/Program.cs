@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OnlineAssessment.Web.Models;
 using System.Text;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -119,11 +120,20 @@ app.MapControllerRoute(
     pattern: "Test/{action}/{id?}",
     defaults: new { controller = "Test" });
 
-app.MapControllerRoute(
-    name: "test-upload",
-    pattern: "Test/upload-questions",
-    defaults: new { controller = "Test", action = "UploadQuestions" });
-
 app.MapControllers();
+
+// Ensure uploads directory exists
+var uploadsPath = Path.Combine(builder.Environment.WebRootPath, "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+
+// Add static file serving for uploads
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
 
 app.Run();
