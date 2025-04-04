@@ -1,5 +1,4 @@
 @model OnlineAssessment.Web.Models.Test
-@using System.Text.Json
 
 @{
     ViewData["Title"] = "Take Test";
@@ -113,32 +112,6 @@
             border-radius: 8px;
             padding: 1.5rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .json-container {
-            background-color: #2d2d2d;
-            border-radius: 4px;
-            padding: 0.75rem;
-            margin: 0.5rem 0;
-        }
-        .json-container pre {
-            margin: 0;
-            white-space: pre-wrap;
-        }
-        .json-container code {
-            color: #f8f9fa;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        }
-        .test-case {
-            background-color: #f8f9fa;
-            border-radius: 6px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid #e9ecef;
-        }
-        .test-case strong {
-            color: #495057;
-            display: block;
-            margin-bottom: 0.5rem;
         }
     </style>
 }
@@ -353,37 +326,24 @@
                                                             </div>
                                                             <div class="test-case-content">
                                                                 <div class="test-cases" id="testCases_@question.Id">
-                                                                    @if (question.TestCases != null && question.TestCases.Any())
+                                                                    @foreach (var testCase in question.TestCases)
                                                                     {
-                                                                        @foreach (var testCase in question.TestCases)
-                                                                        {
-                                                                            <div class="test-case">
-                                                                                <div class="mb-2">
-                                                                                    <strong>Input:</strong>
-                                                                                    <div class="json-container">
-                                                                                        <pre><code class="language-json">@testCase.Input</code></pre>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div>
-                                                                                    <strong>Expected Output:</strong>
-                                                                                    <div class="json-container">
-                                                                                        <pre><code class="language-json">@testCase.ExpectedOutput</code></pre>
-                                                                                    </div>
-                                                                                </div>
-                                                                                @if (!string.IsNullOrEmpty(testCase.Explanation))
-                                                                                {
-                                                                                    <div class="mt-2">
-                                                                                        <strong>Explanation:</strong>
-                                                                                        <p class="mb-0 text-muted">@testCase.Explanation</p>
-                                                                                    </div>
-                                                                                }
+                                                                        <div class="test-case">
+                                                                            <div class="mb-2">
+                                                                                <strong>Input:</strong>
+                                                                                <pre><code>@testCase.Input</code></pre>
                                                                             </div>
-                                                                        }
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        <div class="alert alert-info">
-                                                                            <i class="fas fa-info-circle"></i> No test cases available for this question.
+                                                                            <div>
+                                                                                <strong>Expected Output:</strong>
+                                                                                <pre><code>@testCase.ExpectedOutput</code></pre>
+                                                                            </div>
+                                                                            @if (!string.IsNullOrEmpty(testCase.Explanation))
+                                                                            {
+                                                                                <div class="mt-2">
+                                                                                    <strong>Explanation:</strong>
+                                                                                    <p class="mb-0 text-muted">@testCase.Explanation</p>
+                                                                                </div>
+                                                                            }
                                                                         </div>
                                                                     }
                                                                 </div>
