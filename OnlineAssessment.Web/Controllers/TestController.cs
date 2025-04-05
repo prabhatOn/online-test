@@ -146,22 +146,6 @@ namespace OnlineAssessment.Web.Controllers
                     return Json(new { success = false, message = "Test not found" });
                 }
 
-                // Save file locally
-                var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                // Save the file
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
                 // Read and process the file
                 string jsonContent;
                 using (var reader = new StreamReader(file.OpenReadStream()))
@@ -172,64 +156,96 @@ namespace OnlineAssessment.Web.Controllers
                 // Log the received JSON content
                 _logger.LogInformation("Received JSON content: {JsonContent}", jsonContent);
 
-                var questions = JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent);
-                if (questions == null || !questions.Any())
+                try
                 {
-                    return Json(new { success = false, message = "Invalid JSON format or empty questions" });
-                }
+                    var questions = JsonSerializer.Deserialize<List<QuestionDto>>(jsonContent, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
 
-                foreach (var questionDto in questions)
+                    if (questions == null || !questions.Any())
+                    {
+                        return Json(new { success = false, message = "Invalid JSON format or empty questions" });
+                    }
+
+                    foreach (var questionDto in questions)
+                    {
+                        if (string.IsNullOrWhiteSpace(questionDto.Text))
+                        {
+                            return Json(new { success = false, message = "Question text cannot be empty" });
+                        }
+
+                        var question = new Question
+                        {
+                            Text = questionDto.Text,
+                            Type = questionDto.Type,
+                            TestId = testId,
+                            MainMethod = questionDto.MainMethod ?? string.Empty,
+                            FunctionName = questionDto.FunctionName,
+                            ReturnType = questionDto.ReturnType,
+                            ReturnDescription = questionDto.ReturnDescription,
+                            Constraints = questionDto.Constraints,
+                            StarterCode = questionDto.StarterCode,
+                            Parameters = questionDto.Parameters
+                        };
+
+                        _context.Questions.Add(question);
+                        await _context.SaveChangesAsync();
+
+                        if (questionDto.Type == QuestionType.MultipleChoice && questionDto.AnswerOptions != null)
+                        {
+                            foreach (var optionDto in questionDto.AnswerOptions)
+                            {
+                                if (string.IsNullOrWhiteSpace(optionDto.Text))
+                                {
+                                    return Json(new { success = false, message = "Answer option text cannot be empty" });
+                                }
+
+                                _context.AnswerOptions.Add(new AnswerOption
+                                {
+                                    Text = optionDto.Text,
+                                    IsCorrect = optionDto.IsCorrect,
+                                    QuestionId = question.Id
+                                });
+                            }
+                        }
+                        else if (questionDto.Type == QuestionType.ShortAnswer && questionDto.TestCases != null)
+                        {
+                            foreach (var testCaseDto in questionDto.TestCases)
+                            {
+                                if (string.IsNullOrWhiteSpace(testCaseDto.Input) || string.IsNullOrWhiteSpace(testCaseDto.ExpectedOutput))
+                                {
+                                    return Json(new { success = false, message = "Test case input and expected output cannot be empty" });
+                                }
+
+                                _context.TestCases.Add(new TestCase
+                                {
+                                    Input = testCaseDto.Input,
+                                    ExpectedOutput = testCaseDto.ExpectedOutput,
+                                    QuestionId = question.Id
+                                });
+                            }
+                        }
+
+                        await _context.SaveChangesAsync();
+                    }
+
+                    return Json(new { success = true, message = "Questions uploaded and saved successfully" });
+                }
+                catch (JsonException ex)
                 {
-                    if (string.IsNullOrWhiteSpace(questionDto.Text))
-                    {
-                        return Json(new { success = false, message = "Question text cannot be empty" });
-                    }
-
-                    var question = new Question
-                    {
-                        Text = questionDto.Text,
-                        Type = questionDto.Type,
-                        TestId = testId
-                    };
-
-                    _context.Questions.Add(question);
-                    await _context.SaveChangesAsync();
-
-                    if (questionDto.Type == QuestionType.MultipleChoice && questionDto.AnswerOptions != null)
-                    {
-                        foreach (var optionDto in questionDto.AnswerOptions)
-                        {
-                            _context.AnswerOptions.Add(new AnswerOption
-                            {
-                                Text = optionDto.Text,
-                                IsCorrect = optionDto.IsCorrect,
-                                QuestionId = question.Id
-                            });
-                        }
-                    }
-                    else if (questionDto.Type == QuestionType.ShortAnswer && questionDto.TestCases != null)
-                    {
-                        foreach (var testCaseDto in questionDto.TestCases)
-                        {
-                            _context.TestCases.Add(new TestCase
-                            {
-                                Input = testCaseDto.Input,
-                                ExpectedOutput = testCaseDto.ExpectedOutput,
-                                QuestionId = question.Id
-                            });
-                        }
-                    }
+                    _logger.LogError(ex, "Error deserializing JSON");
+                    return Json(new { success = false, message = "Invalid JSON format: " + ex.Message });
                 }
-
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Questions uploaded and saved successfully" });
-            }
-            catch (JsonException ex)
-            {
-                return Json(new { success = false, message = "Invalid JSON format: " + ex.Message });
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Error saving to database");
+                    return Json(new { success = false, message = "Database error: " + ex.InnerException?.Message ?? ex.Message });
+                }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error processing file upload");
                 return Json(new { success = false, message = "Error processing file: " + ex.Message });
             }
         }
@@ -531,6 +547,7 @@ namespace OnlineAssessment.Web.Controllers
                             Text = questionDto.Text,
                             Type = questionDto.Type,
                             TestId = testId,
+                            MainMethod = questionDto.MainMethod ?? string.Empty,
                             FunctionName = questionDto.FunctionName,
                             ReturnType = questionDto.ReturnType,
                             ReturnDescription = questionDto.ReturnDescription,

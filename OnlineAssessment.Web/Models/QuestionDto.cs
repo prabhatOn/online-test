@@ -22,5 +22,6 @@ namespace OnlineAssessment.Web.Models
         public List<string>? Constraints { get; set; }
         public Dictionary<string, string>? StarterCode { get; set; }
         public List<Parameter>? Parameters { get; set; }
+        public string MainMethod { get; set; } = string.Empty;
     }
 }

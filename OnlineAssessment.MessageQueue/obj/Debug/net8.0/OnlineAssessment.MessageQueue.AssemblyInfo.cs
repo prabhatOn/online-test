@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OnlineAssessment.MessageQueue")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+80091cb56c19c7b3fd65127c88fa36124d6b9538")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7954bacf8f6a151470a54152a60b175741e67668")]
 [assembly: System.Reflection.AssemblyProductAttribute("OnlineAssessment.MessageQueue")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OnlineAssessment.MessageQueue")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

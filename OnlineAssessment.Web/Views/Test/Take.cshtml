@@ -336,12 +336,12 @@
                                                         </div>
                                                         <input type="hidden" name="question_@question.Id" class="coding-answer" required>
 
-                                                        <div class="test-case-panel">
+                                                        <div class="test-case-panel" id="testCasePanel_@question.Id">
                                                             <div class="test-case-header">
                                                                 <h6 class="mb-0">Test Results</h6>
                                                             </div>
                                                             <div class="test-case-content">
-                                                                <div id="testCaseResults" class="d-none">
+                                                                <div id="testCaseResults_@question.Id" class="d-none">
                                                                     <div class="test-case-status mb-3">
                                                                         <div class="d-flex justify-content-between align-items-center">
                                                                             <div>
@@ -353,9 +353,9 @@
                                                                     </div>
 
                                                                     <div class="test-cases-nav mb-3">
-                                                                        <button class="btn btn-outline-primary btn-sm active" onclick="showTestCase(0)">Case 1</button>
-                                                                        <button class="btn btn-outline-primary btn-sm" onclick="showTestCase(1)">Case 2</button>
-                                                                        <button class="btn btn-outline-primary btn-sm" onclick="showTestCase(2)">Case 3</button>
+                                                                        <button class="btn btn-outline-primary btn-sm active" onclick="showTestCase(@question.Id, 0)">Case 1</button>
+                                                                        <button class="btn btn-outline-primary btn-sm" onclick="showTestCase(@question.Id, 1)">Case 2</button>
+                                                                        <button class="btn btn-outline-primary btn-sm" onclick="showTestCase(@question.Id, 2)">Case 3</button>
                                                                     </div>
 
                                                                     <div class="current-test-case">
@@ -455,95 +455,8 @@
             });
         });
 
-        // Handle Run Code button clicks
-        document.querySelectorAll('.run-code-btn').forEach(button => {
-            button.addEventListener('click', async function() {
-                const questionId = this.dataset.questionId;
-                const editor = window[`editor_${questionId}`];
-                if (!editor) return;
-
-                const code = editor.getValue();
-                const resultsDiv = document.getElementById('testCaseResults');
-
-                if (!code.trim()) {
-                    alert('Please write some code before running.');
-                    return;
-                }
-
-                // Show loading state
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
-                resultsDiv.classList.remove('d-none');
-
-                try {
-                    const response = await fetch('/api/compiler/run', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            code: code,
-                            language: 'java',
-                            questionId: questionId
-                        })
-                    });
-
-                    const result = await response.json();
-                    
-                    // Update status and runtime
-                    const statusDiv = resultsDiv.querySelector('.test-case-status');
-                    const statusIcon = statusDiv.querySelector('.status-icon');
-                    const statusText = statusDiv.querySelector('.status-text');
-                    const runtimeInfo = statusDiv.querySelector('.runtime-info');
-
-                    if (result.success) {
-                        statusIcon.textContent = '✓';
-                        statusIcon.className = 'status-icon passed';
-                        statusText.textContent = 'All Test Cases Passed';
-                        statusText.className = 'status-text passed';
-                    } else {
-                        statusIcon.textContent = '✗';
-                        statusIcon.className = 'status-icon failed';
-                        statusText.textContent = 'Test Cases Failed';
-                        statusText.className = 'status-text failed';
-                    }
-
-                    runtimeInfo.textContent = `Runtime: ${result.runtimeInMs || 0}ms`;
-
-                    // Update test case buttons and store results
-                    const buttons = resultsDiv.querySelectorAll('.test-cases-nav button');
-                    const testCases = result.testCaseResults || [];
-                    
-                    testCases.forEach((testCase, index) => {
-                        if (buttons[index]) {
-                            const passed = testCase.passed || testCase.actualOutput === testCase.expectedOutput;
-                            buttons[index].className = `btn btn-sm ${passed ? 'btn-outline-success' : 'btn-outline-danger'}`;
-                            buttons[index].innerHTML = `Case ${index + 1} ${passed ? '✓' : '✗'}`;
-                        }
-                    });
-
-                    // Store test cases in the dataset
-                    resultsDiv.dataset.testCases = JSON.stringify(testCases);
-
-                    // Show first test case by default
-                    showTestCase(0);
-
-                } catch (error) {
-                    resultsDiv.innerHTML = `
-                        <div class="alert alert-danger">
-                            <h6>Error</h6>
-                            <pre>${error.message}</pre>
-                        </div>
-                    `;
-                } finally {
-                    button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-play"></i> Run Code';
-                }
-            });
-        });
-
-        function showTestCase(index) {
-            const resultsDiv = document.getElementById('testCaseResults');
+        function showTestCase(questionId, index) {
+            const resultsDiv = document.getElementById(`testCaseResults_${questionId}`);
             const testCases = JSON.parse(resultsDiv.dataset.testCases || '[]');
             const testCase = testCases[index];
 
@@ -571,7 +484,105 @@
             // Add appropriate styling based on pass/fail status
             const passed = testCase.passed || testCase.actualOutput === testCase.expectedOutput;
             outputDisplay.className = `bg-dark text-white p-2 rounded ${passed ? 'border-success' : 'border-danger'}`;
+            
+            // Show explanation if available
+            const explanationDiv = resultsDiv.querySelector('.explanation-display');
+            if (explanationDiv) {
+                explanationDiv.textContent = testCase.explanation || '';
+                explanationDiv.style.display = testCase.explanation ? 'block' : 'none';
+            }
         }
+
+        // Handle Run Code button clicks
+        document.querySelectorAll('.run-code-btn').forEach(button => {
+            button.addEventListener('click', async function() {
+                const questionId = this.dataset.questionId;
+                const editor = window[`editor_${questionId}`];
+                if (!editor) return;
+
+                const code = editor.getValue();
+                const resultsDiv = document.getElementById(`testCaseResults_${questionId}`);
+
+                if (!code.trim()) {
+                    alert('Please write some code before running.');
+                    return;
+                }
+
+                // Show loading state
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+                resultsDiv.classList.remove('d-none');
+
+                try {
+                    const response = await fetch('/api/compiler/run', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            code: code,
+                            language: 'java',
+                            questionId: questionId
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    // Update status and runtime
+                    const statusDiv = resultsDiv.querySelector('.test-case-status');
+                    const statusIcon = statusDiv.querySelector('.status-icon');
+                    const statusText = statusDiv.querySelector('.status-text');
+                    const runtimeInfo = statusDiv.querySelector('.runtime-info');
+
+                    if (result.success) {
+                        statusIcon.textContent = '✓';
+                        statusIcon.className = 'status-icon passed';
+                        statusText.textContent = 'All Test Cases Passed';
+                        statusText.className = 'status-text passed';
+                    } else {
+                        statusIcon.textContent = '✗';
+                        statusIcon.className = 'status-icon failed';
+                        statusText.textContent = result.errorMessage || 'Test Cases Failed';
+                        statusText.className = 'status-text failed';
+                    }
+
+                    runtimeInfo.textContent = `Runtime: ${result.runtimeInMs || 0}ms`;
+
+                    // Update test case buttons and store results
+                    const buttons = resultsDiv.querySelectorAll('.test-cases-nav button');
+                    const testCases = result.testCaseResults || [];
+                    
+                    testCases.forEach((testCase, index) => {
+                        if (buttons[index]) {
+                            const passed = testCase.passed || testCase.actualOutput === testCase.expectedOutput;
+                            buttons[index].className = `btn btn-sm ${passed ? 'btn-outline-success' : 'btn-outline-danger'}`;
+                            buttons[index].innerHTML = `Case ${index + 1} ${passed ? '✓' : '✗'}`;
+                        }
+                    });
+
+                    // Store test cases in the dataset
+                    resultsDiv.dataset.testCases = JSON.stringify(testCases);
+
+                    // Show first test case by default
+                    showTestCase(questionId, 0);
+
+                } catch (error) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6>Error</h6>
+                            <pre>${error.message}</pre>
+                        </div>
+                    `;
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-play"></i> Run Code';
+                }
+            });
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             const testForm = document.getElementById('testForm');
