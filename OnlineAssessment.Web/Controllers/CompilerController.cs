@@ -5,6 +5,10 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using OnlineAssessment.Web.Models;
 using System.Text.RegularExpressions;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace OnlineAssessment.Web.Controllers
 {
@@ -33,160 +37,84 @@ namespace OnlineAssessment.Web.Controllers
 
                 if (question == null)
                 {
-                    return BadRequest(new { success = false, error = "Question not found" });
+                    return BadRequest(new { success = false, message = "Question not found" });
                 }
 
-                // Create a temporary Java file
-                var className = "Solution";
-                var filePath = Path.Combine(Path.GetTempPath(), $"{className}.java");
+                var className = $"Solution_{Guid.NewGuid().ToString("N")}";
                 var fullCode = GenerateFullJavaCode(className, request.Code, question);
+                var javaFilePath = Path.Combine(Path.GetTempPath(), $"{className}.java");
 
-                await System.IO.File.WriteAllTextAsync(filePath, fullCode);
-
-                // First step: Compilation
-                _logger.LogInformation("Compiling code...");
-                var compileResult = await CompileJavaFile(filePath, className);
-                if (!compileResult.Success)
+                try
                 {
-                    return Ok(new { 
-                        success = false, 
-                        phase = "compilation",
-                        error = FormatCompilationError(compileResult.Error),
-                        message = "Compilation Error"
-                    });
-                }
+                    // Write the code to a temporary file
+                    await System.IO.File.WriteAllTextAsync(javaFilePath, fullCode);
 
-                _logger.LogInformation("Compilation successful. Running test cases...");
-
-                // Second step: Run test cases
-                var testResults = new List<TestCaseResult>();
-                var allPassed = true;
-                TestCase failedTestCase = null;
-                string actualOutput = "";
-                var totalTestCases = question.TestCases.Count;
-                var currentTestCase = 0;
-
-                foreach (var testCase in question.TestCases)
-                {
-                    currentTestCase++;
-                    _logger.LogInformation($"Running test case {currentTestCase}/{totalTestCases}");
-
-                    var result = await RunTestCase(className, testCase);
-                    testResults.Add(result);
-
-                    if (!result.Passed)
+                    // Compile the code
+                    var startTime = DateTime.UtcNow;
+                    var compileResult = await CompileJavaCode(javaFilePath);
+                    
+                    if (!compileResult.Success)
                     {
-                        allPassed = false;
-                        failedTestCase = testCase;
-                        actualOutput = result.ActualOutput;
-                        break;
-                    }
-                }
-
-                // Clean up temporary files
-                CleanupFiles(filePath, className);
-
-                if (allPassed)
-                {
-                    return Ok(new
-                    {
-                        success = true,
-                        phase = "execution",
-                        message = "Accepted",
-                        runtime = "0 ms",
-                        testCaseResults = testResults.Select(r => new {
-                            passed = r.Passed,
-                            input = r.Input,
-                            expectedOutput = r.ExpectedOutput,
-                            actualOutput = r.ActualOutput
-                        }).ToList(),
-                        output = testResults.First().ActualOutput
-                    });
-                }
-                else
-                {
-                    return Ok(new
-                    {
-                        success = false,
-                        phase = "execution",
-                        message = "Wrong Answer",
-                        error = "Test case failed",
-                        failedTestCase = new
+                        return Ok(new CodeExecutionResponse
                         {
-                            input = failedTestCase.Input,
-                            expected = failedTestCase.ExpectedOutput,
-                            actual = actualOutput,
-                            testCaseNumber = currentTestCase
-                        }
+                            Success = false,
+                            ErrorMessage = "Compilation Error: " + compileResult.Error,
+                            Status = "Compilation Error"
+                        });
+                    }
+
+                    // Run test cases
+                    var testResults = new List<TestCaseResult>();
+                    foreach (var testCase in question.TestCases)
+                    {
+                        var result = await RunTestCase(className, testCase);
+                        testResults.Add(result);
+                    }
+
+                    var endTime = DateTime.UtcNow;
+                    var runtimeMs = (long)(endTime - startTime).TotalMilliseconds;
+
+                    return Ok(new CodeExecutionResponse
+                    {
+                        Success = true,
+                        TestCaseResults = testResults,
+                        RuntimeInMs = runtimeMs,
+                        Status = testResults.All(r => r.Passed) ? "Accepted" : "Wrong Answer"
                     });
+                }
+                finally
+                {
+                    // Cleanup temporary files
+                    try
+                    {
+                        if (System.IO.File.Exists(javaFilePath))
+                            System.IO.File.Delete(javaFilePath);
+                        var classFilePath = Path.Combine(Path.GetTempPath(), $"{className}.class");
+                        if (System.IO.File.Exists(classFilePath))
+                            System.IO.File.Delete(classFilePath);
+                    }
+                    catch { /* Ignore cleanup errors */ }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error running code");
-                return Ok(new { 
-                    success = false, 
-                    phase = "execution",
-                    error = ex.Message,
-                    message = "Runtime Error"
+                return Ok(new CodeExecutionResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Internal error: " + ex.Message,
+                    Status = "Internal Error"
                 });
             }
         }
 
-        private string FormatCompilationError(string error)
-        {
-            // Remove file paths and clean up the error message
-            var lines = error.Split('\n')
-                .Where(line => !string.IsNullOrWhiteSpace(line))
-                .Select(line => {
-                    // Remove the file path from the error message
-                    var match = Regex.Match(line, @"Solution\.java:(\d+):(.+)");
-                    if (match.Success)
-                    {
-                        return $"Line {match.Groups[1].Value}: {match.Groups[2].Value.Trim()}";
-                    }
-                    return line.Trim();
-                });
-            return string.Join("\n", lines);
-        }
-
-        private string GenerateFullJavaCode(string className, string userCode, Question question)
-        {
-            var code = new StringBuilder();
-            code.AppendLine("import java.util.*;");
-            code.AppendLine($"public class {className} {{");
-            
-            // Add the user's solution method
-            code.AppendLine(userCode);
-            
-            // Add the main method from the question
-            if (!string.IsNullOrEmpty(question.MainMethod))
-            {
-                code.AppendLine(question.MainMethod);
-            }
-            else
-            {
-                // Fallback to default main method if not provided
-                code.AppendLine("    public static void main(String[] args) {");
-                code.AppendLine("        Scanner scanner = new Scanner(System.in);");
-                code.AppendLine("        String input = scanner.nextLine().trim();");
-                code.AppendLine($"        {className} solution = new {className}();");
-                code.AppendLine($"        System.out.println(solution.{question.FunctionName}(input));");
-                code.AppendLine("    }");
-            }
-            
-            code.AppendLine("}");
-            return code.ToString();
-        }
-
-        private async Task<(bool Success, string Error)> CompileJavaFile(string filePath, string className)
+        private async Task<(bool Success, string Error)> CompileJavaCode(string javaFilePath)
         {
             var startInfo = new ProcessStartInfo
             {
                 FileName = "javac",
-                Arguments = filePath,
+                Arguments = javaFilePath,
                 RedirectStandardError = true,
-                RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
@@ -197,6 +125,31 @@ namespace OnlineAssessment.Web.Controllers
             await process.WaitForExitAsync();
 
             return (process.ExitCode == 0, error);
+        }
+
+        private string GenerateFullJavaCode(string className, string userCode, Question question)
+        {
+            var code = new StringBuilder();
+            code.AppendLine("import java.util.*;");
+            code.AppendLine($"public class {className} {{");
+            code.AppendLine(userCode);
+            
+            if (!string.IsNullOrEmpty(question.MainMethod))
+            {
+                code.AppendLine(question.MainMethod);
+            }
+            else
+            {
+                // Fallback main method if none provided
+                code.AppendLine("    public static void main(String[] args) {");
+                code.AppendLine("        Scanner scanner = new Scanner(System.in);");
+                code.AppendLine("        String input = scanner.nextLine();");
+                code.AppendLine($"        System.out.println(new {className}().{question.FunctionName}(input));");
+                code.AppendLine("    }");
+            }
+            
+            code.AppendLine("}");
+            return code.ToString();
         }
 
         private async Task<TestCaseResult> RunTestCase(string className, TestCase testCase)
@@ -216,58 +169,55 @@ namespace OnlineAssessment.Web.Controllers
             using var process = new Process { StartInfo = startInfo };
             process.Start();
 
-            // Write input to the process
-            await process.StandardInput.WriteLineAsync(testCase.Input);
-            await process.StandardInput.FlushAsync();
+            try
+            {
+                // Write input to the process
+                if (!string.IsNullOrEmpty(testCase.Input))
+                {
+                    await process.StandardInput.WriteLineAsync(testCase.Input);
+                    await process.StandardInput.FlushAsync();
+                }
+                process.StandardInput.Close();
 
-            // Read output and error
-            var output = await process.StandardOutput.ReadToEndAsync();
-            var error = await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+                // Read output and error
+                var output = await process.StandardOutput.ReadToEndAsync();
+                var error = await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
 
-            if (!string.IsNullOrEmpty(error))
+                if (!string.IsNullOrEmpty(error))
+                {
+                    return new TestCaseResult
+                    {
+                        Passed = false,
+                        ActualOutput = "Runtime Error: " + error,
+                        ExpectedOutput = testCase.ExpectedOutput,
+                        Input = testCase.Input,
+                        Explanation = testCase.Explanation
+                    };
+                }
+
+                var normalizedOutput = output.Trim();
+                var normalizedExpected = testCase.ExpectedOutput.Trim();
+
+                return new TestCaseResult
+                {
+                    Passed = normalizedOutput.Equals(normalizedExpected, StringComparison.OrdinalIgnoreCase),
+                    ActualOutput = output.Trim(),
+                    ExpectedOutput = testCase.ExpectedOutput,
+                    Input = testCase.Input,
+                    Explanation = testCase.Explanation
+                };
+            }
+            catch (Exception ex)
             {
                 return new TestCaseResult
                 {
                     Passed = false,
-                    ActualOutput = "Runtime Error: " + error,
+                    ActualOutput = "Error: " + ex.Message,
                     ExpectedOutput = testCase.ExpectedOutput,
-                    Input = testCase.Input
+                    Input = testCase.Input,
+                    Explanation = testCase.Explanation
                 };
-            }
-
-            var normalizedOutput = NormalizeOutput(output.Trim());
-            var normalizedExpected = NormalizeOutput(testCase.ExpectedOutput.Trim());
-
-            return new TestCaseResult
-            {
-                Passed = normalizedOutput == normalizedExpected,
-                ActualOutput = output.Trim(),
-                ExpectedOutput = testCase.ExpectedOutput,
-                Input = testCase.Input
-            };
-        }
-
-        private string NormalizeOutput(string output)
-        {
-            // Remove all whitespace and convert to lowercase
-            return Regex.Replace(output, @"\s+", "").ToLower();
-        }
-
-        private void CleanupFiles(string javaFilePath, string className)
-        {
-            try
-            {
-                if (System.IO.File.Exists(javaFilePath))
-                    System.IO.File.Delete(javaFilePath);
-
-                var classFilePath = Path.Combine(Path.GetTempPath(), $"{className}.class");
-                if (System.IO.File.Exists(classFilePath))
-                    System.IO.File.Delete(classFilePath);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error cleaning up files");
             }
         }
     }
@@ -285,5 +235,17 @@ namespace OnlineAssessment.Web.Controllers
         public string ActualOutput { get; set; }
         public string ExpectedOutput { get; set; }
         public string Input { get; set; }
+        public string Explanation { get; set; }
+        public int CaseNumber { get; set; }
+        public bool ShowDetails { get; set; }
+    }
+
+    public class CodeExecutionResponse
+    {
+        public bool Success { get; set; }
+        public string ErrorMessage { get; set; }
+        public string Status { get; set; }
+        public List<TestCaseResult> TestCaseResults { get; set; }
+        public long RuntimeInMs { get; set; }
     }
 } 

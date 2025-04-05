@@ -19,24 +19,41 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .test-case-panel {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            margin-top: 1rem;
         }
         .test-case-header {
-            padding: 0.75rem 1rem;
             background-color: #f8f9fa;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #dee2e6;
         }
         .test-case-content {
             padding: 1rem;
-            max-height: 500px;
-            overflow-y: auto;
+        }
+        .test-case-status {
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .status-icon {
+            font-size: 1.25rem;
+            margin-right: 0.5rem;
+        }
+        .test-cases-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .test-cases-nav button {
+            min-width: 80px;
+        }
+        .test-case-detail pre {
+            margin: 0;
+        }
+        .passed {
+            color: #28a745;
+        }
+        .failed {
+            color: #dc3545;
         }
         .test-case-result {
             padding: 1rem;
@@ -321,33 +338,40 @@
 
                                                         <div class="test-case-panel">
                                                             <div class="test-case-header">
-                                                                <h6 class="mb-0">Test Cases</h6>
-                                                                <span class="badge bg-secondary">@question.TestCases.Count</span>
+                                                                <h6 class="mb-0">Test Results</h6>
                                                             </div>
                                                             <div class="test-case-content">
-                                                                <div class="test-cases" id="testCases_@question.Id">
-                                                                    @foreach (var testCase in question.TestCases)
-                                                                    {
-                                                                        <div class="test-case">
-                                                                            <div class="mb-2">
-                                                                                <strong>Input:</strong>
-                                                                                <pre><code>@testCase.Input</code></pre>
-                                                                            </div>
+                                                                <div id="testCaseResults" class="d-none">
+                                                                    <div class="test-case-status mb-3">
+                                                                        <div class="d-flex justify-content-between align-items-center">
                                                                             <div>
-                                                                                <strong>Expected Output:</strong>
-                                                                                <pre><code>@testCase.ExpectedOutput</code></pre>
+                                                                                <span class="status-icon">✓</span>
+                                                                                <span class="status-text">Status</span>
                                                                             </div>
-                                                                            @if (!string.IsNullOrEmpty(testCase.Explanation))
-                                                                            {
-                                                                                <div class="mt-2">
-                                                                                    <strong>Explanation:</strong>
-                                                                                    <p class="mb-0 text-muted">@testCase.Explanation</p>
-                                                                                </div>
-                                                                            }
+                                                                            <div class="runtime-info">Runtime: 0ms</div>
                                                                         </div>
-                                                                    }
-                                                                </div>
-                                                                <div class="test-case-result d-none" id="result_@question.Id">
+                                                                    </div>
+
+                                                                    <div class="test-cases-nav mb-3">
+                                                                        <button class="btn btn-outline-primary btn-sm active" onclick="showTestCase(0)">Case 1</button>
+                                                                        <button class="btn btn-outline-primary btn-sm" onclick="showTestCase(1)">Case 2</button>
+                                                                        <button class="btn btn-outline-primary btn-sm" onclick="showTestCase(2)">Case 3</button>
+                                                                    </div>
+
+                                                                    <div class="current-test-case">
+                                                                        <div class="test-case-detail mb-3">
+                                                                            <h6 class="text-muted">Input:</h6>
+                                                                            <pre class="bg-dark text-white p-2 rounded input-display"></pre>
+                                                                        </div>
+                                                                        <div class="test-case-detail mb-3">
+                                                                            <h6 class="text-muted">Your Output:</h6>
+                                                                            <pre class="bg-dark text-white p-2 rounded output-display"></pre>
+                                                                        </div>
+                                                                        <div class="test-case-detail">
+                                                                            <h6 class="text-muted">Expected Output:</h6>
+                                                                            <pre class="bg-dark text-white p-2 rounded expected-display"></pre>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -442,8 +466,7 @@
                 }
 
                 const code = editor.getValue();
-                const resultContainer = document.getElementById(`result_${questionId}`);
-                const testCasesContainer = document.getElementById(`testCases_${questionId}`);
+                const resultsDiv = document.getElementById('testCaseResults');
 
                 if (!code.trim()) {
                     alert('Please write some code before running.');
@@ -453,16 +476,13 @@
                 // Show loading state
                 button.disabled = true;
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
-                resultContainer.className = 'test-case-result';
-                resultContainer.classList.remove('d-none');
-                resultContainer.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Running test cases...</div>';
+                resultsDiv.classList.remove('d-none');
 
                 try {
                     const response = await fetch('/api/compiler/run', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + localStorage.getItem('token')
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
                             code: code,
@@ -471,59 +491,58 @@
                         })
                     });
 
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-
                     const result = await response.json();
                     
                     if (result.success) {
-                        resultContainer.className = 'test-case-result result-success';
-                        resultContainer.innerHTML = `
-                            <h6><i class="fas fa-check-circle"></i> All Test Cases Passed!</h6>
-                            <div class="mt-2">
-                                <strong>Output:</strong>
-                                <pre><code>${escapeHtml(result.output)}</code></pre>
-                            </div>
-                            ${result.runtime ? `<div class="mt-2"><strong>Runtime:</strong> ${result.runtime}ms</div>` : ''}
-                            ${result.memory ? `<div><strong>Memory:</strong> ${result.memory}MB</div>` : ''}
-                        `;
+                        resultsDiv.querySelector('.test-case-status').className = 'test-case-status passed';
+                        resultsDiv.querySelector('.status-icon').className = 'status-icon passed';
+                        resultsDiv.querySelector('.status-text').textContent = 'All Test Cases Passed';
+                        resultsDiv.querySelector('.runtime-info').textContent = `Runtime: ${result.runtimeInMs || 0}ms`;
 
-                        // Update test cases status
-                        if (result.testCaseResults) {
-                            result.testCaseResults.forEach((testResult, index) => {
-                                const testCase = testCasesContainer.children[index];
-                                if (testCase) {
-                                    testCase.classList.remove('test-case-failed', 'test-case-passed');
-                                    testCase.classList.add(testResult.passed ? 'test-case-passed' : 'test-case-failed');
-                                }
-                            });
+                        // Update test case buttons
+                        const buttons = resultsDiv.querySelectorAll('.test-cases-nav button');
+                        result.testCaseResults.forEach((testCase, index) => {
+                            if (buttons[index]) {
+                                buttons[index].className = `btn btn-sm btn-outline-success`;
+                                buttons[index].innerHTML = `Case ${index + 1} ✓`;
+                            }
+                        });
+
+                        // Show first test case by default
+                        if (result.testCaseResults && result.testCaseResults.length > 0) {
+                            showTestCase(0, result.testCaseResults);
                         }
+
+                        // Store test cases for later use
+                        resultsDiv.dataset.testCases = JSON.stringify(result.testCaseResults);
                     } else {
-                        resultContainer.className = 'test-case-result result-error';
-                        resultContainer.innerHTML = `
-                            <h6><i class="fas fa-times-circle"></i> Test Cases Failed</h6>
-                            <div class="mt-2">
-                                <strong>Error:</strong>
-                                <pre><code>${escapeHtml(result.error)}</code></pre>
-                            </div>
-                            ${result.failedTestCase ? `
-                            <div class="mt-2">
-                                <strong>Failed Test Case:</strong>
-                                <div class="test-case mt-2">
-                                    <div><strong>Input:</strong> <code>${escapeHtml(result.failedTestCase.input)}</code></div>
-                                    <div><strong>Expected:</strong> <code>${escapeHtml(result.failedTestCase.expected)}</code></div>
-                                    <div><strong>Actual:</strong> <code>${escapeHtml(result.failedTestCase.actual)}</code></div>
-                                </div>
-                            </div>` : ''}
-                        `;
+                        resultsDiv.querySelector('.test-case-status').className = 'test-case-status failed';
+                        resultsDiv.querySelector('.status-icon').className = 'status-icon failed';
+                        resultsDiv.querySelector('.status-text').textContent = 'Test Cases Failed';
+                        resultsDiv.querySelector('.runtime-info').textContent = `Runtime: ${result.runtimeInMs || 0}ms`;
+
+                        // Update test case buttons
+                        const buttons = resultsDiv.querySelectorAll('.test-cases-nav button');
+                        result.testCaseResults.forEach((testCase, index) => {
+                            if (buttons[index]) {
+                                buttons[index].className = `btn btn-sm btn-outline-danger`;
+                                buttons[index].innerHTML = `Case ${index + 1} ✗`;
+                            }
+                        });
+
+                        // Show first test case by default
+                        if (result.testCaseResults && result.testCaseResults.length > 0) {
+                            showTestCase(0, result.testCaseResults);
+                        }
+
+                        // Store test cases for later use
+                        resultsDiv.dataset.testCases = JSON.stringify(result.testCaseResults);
                     }
                 } catch (error) {
-                    resultContainer.className = 'test-case-result result-error';
-                    resultContainer.innerHTML = `
-                        <h6><i class="fas fa-exclamation-circle"></i> Error</h6>
-                        <div class="mt-2">
-                            <pre><code>${escapeHtml(error.message)}</code></pre>
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6>Error</h6>
+                            <pre>${error.message}</pre>
                         </div>
                     `;
                 } finally {
@@ -533,14 +552,22 @@
             });
         });
 
-        // Helper function to escape HTML
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        function showTestCase(index) {
+            const resultsDiv = document.getElementById('testCaseResults');
+            const testCases = JSON.parse(resultsDiv.dataset.testCases || '[]');
+            const testCase = testCases[index];
+
+            if (!testCase) return;
+
+            // Update active button
+            resultsDiv.querySelectorAll('.test-cases-nav button').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+
+            // Update test case details
+            resultsDiv.querySelector('.input-display').textContent = testCase.input || '';
+            resultsDiv.querySelector('.output-display').textContent = testCase.actualOutput || '';
+            resultsDiv.querySelector('.expected-display').textContent = testCase.expectedOutput || '';
         }
 
         document.addEventListener('DOMContentLoaded', function() {
