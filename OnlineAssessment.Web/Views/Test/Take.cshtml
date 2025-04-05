@@ -460,10 +460,7 @@
             button.addEventListener('click', async function() {
                 const questionId = this.dataset.questionId;
                 const editor = window[`editor_${questionId}`];
-                if (!editor) {
-                    console.error('Editor not found for question:', questionId);
-                    return;
-                }
+                if (!editor) return;
 
                 const code = editor.getValue();
                 const resultsDiv = document.getElementById('testCaseResults');
@@ -493,51 +490,44 @@
 
                     const result = await response.json();
                     
+                    // Update status and runtime
+                    const statusDiv = resultsDiv.querySelector('.test-case-status');
+                    const statusIcon = statusDiv.querySelector('.status-icon');
+                    const statusText = statusDiv.querySelector('.status-text');
+                    const runtimeInfo = statusDiv.querySelector('.runtime-info');
+
                     if (result.success) {
-                        resultsDiv.querySelector('.test-case-status').className = 'test-case-status passed';
-                        resultsDiv.querySelector('.status-icon').className = 'status-icon passed';
-                        resultsDiv.querySelector('.status-text').textContent = 'All Test Cases Passed';
-                        resultsDiv.querySelector('.runtime-info').textContent = `Runtime: ${result.runtimeInMs || 0}ms`;
-
-                        // Update test case buttons
-                        const buttons = resultsDiv.querySelectorAll('.test-cases-nav button');
-                        result.testCaseResults.forEach((testCase, index) => {
-                            if (buttons[index]) {
-                                buttons[index].className = `btn btn-sm btn-outline-success`;
-                                buttons[index].innerHTML = `Case ${index + 1} ✓`;
-                            }
-                        });
-
-                        // Show first test case by default
-                        if (result.testCaseResults && result.testCaseResults.length > 0) {
-                            showTestCase(0, result.testCaseResults);
-                        }
-
-                        // Store test cases for later use
-                        resultsDiv.dataset.testCases = JSON.stringify(result.testCaseResults);
+                        statusIcon.textContent = '✓';
+                        statusIcon.className = 'status-icon passed';
+                        statusText.textContent = 'All Test Cases Passed';
+                        statusText.className = 'status-text passed';
                     } else {
-                        resultsDiv.querySelector('.test-case-status').className = 'test-case-status failed';
-                        resultsDiv.querySelector('.status-icon').className = 'status-icon failed';
-                        resultsDiv.querySelector('.status-text').textContent = 'Test Cases Failed';
-                        resultsDiv.querySelector('.runtime-info').textContent = `Runtime: ${result.runtimeInMs || 0}ms`;
-
-                        // Update test case buttons
-                        const buttons = resultsDiv.querySelectorAll('.test-cases-nav button');
-                        result.testCaseResults.forEach((testCase, index) => {
-                            if (buttons[index]) {
-                                buttons[index].className = `btn btn-sm btn-outline-danger`;
-                                buttons[index].innerHTML = `Case ${index + 1} ✗`;
-                            }
-                        });
-
-                        // Show first test case by default
-                        if (result.testCaseResults && result.testCaseResults.length > 0) {
-                            showTestCase(0, result.testCaseResults);
-                        }
-
-                        // Store test cases for later use
-                        resultsDiv.dataset.testCases = JSON.stringify(result.testCaseResults);
+                        statusIcon.textContent = '✗';
+                        statusIcon.className = 'status-icon failed';
+                        statusText.textContent = 'Test Cases Failed';
+                        statusText.className = 'status-text failed';
                     }
+
+                    runtimeInfo.textContent = `Runtime: ${result.runtimeInMs || 0}ms`;
+
+                    // Update test case buttons and store results
+                    const buttons = resultsDiv.querySelectorAll('.test-cases-nav button');
+                    const testCases = result.testCaseResults || [];
+                    
+                    testCases.forEach((testCase, index) => {
+                        if (buttons[index]) {
+                            const passed = testCase.passed || testCase.actualOutput === testCase.expectedOutput;
+                            buttons[index].className = `btn btn-sm ${passed ? 'btn-outline-success' : 'btn-outline-danger'}`;
+                            buttons[index].innerHTML = `Case ${index + 1} ${passed ? '✓' : '✗'}`;
+                        }
+                    });
+
+                    // Store test cases in the dataset
+                    resultsDiv.dataset.testCases = JSON.stringify(testCases);
+
+                    // Show first test case by default
+                    showTestCase(0);
+
                 } catch (error) {
                     resultsDiv.innerHTML = `
                         <div class="alert alert-danger">
@@ -564,10 +554,23 @@
                 btn.classList.toggle('active', i === index);
             });
 
-            // Update test case details
-            resultsDiv.querySelector('.input-display').textContent = testCase.input || '';
-            resultsDiv.querySelector('.output-display').textContent = testCase.actualOutput || '';
-            resultsDiv.querySelector('.expected-display').textContent = testCase.expectedOutput || '';
+            // Update test case details with proper formatting
+            const inputDisplay = resultsDiv.querySelector('.input-display');
+            const outputDisplay = resultsDiv.querySelector('.output-display');
+            const expectedDisplay = resultsDiv.querySelector('.expected-display');
+
+            // Format and display input
+            inputDisplay.textContent = testCase.input || 'No input provided';
+            
+            // Format and display actual output
+            outputDisplay.textContent = testCase.actualOutput || 'No output generated';
+            
+            // Format and display expected output
+            expectedDisplay.textContent = testCase.expectedOutput || 'No expected output provided';
+
+            // Add appropriate styling based on pass/fail status
+            const passed = testCase.passed || testCase.actualOutput === testCase.expectedOutput;
+            outputDisplay.className = `bg-dark text-white p-2 rounded ${passed ? 'border-success' : 'border-danger'}`;
         }
 
         document.addEventListener('DOMContentLoaded', function() {
