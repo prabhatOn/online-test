@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OnlineAssessment.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a7b73e555bf05188f2b7c5a8f00a072b62e81d54")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ef38f0f003530fe9a5969d54d7ada18ac49616d6")]
 [assembly: System.Reflection.AssemblyProductAttribute("OnlineAssessment.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OnlineAssessment.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -70,6 +70,9 @@ namespace OnlineAssessment.Web.Models
             get => _parametersJson;
             set => _parametersJson = value;
         }
+
+        [Column(TypeName = "text")]
+        public string MainMethod { get; set; }
     }
 
     public class Parameter

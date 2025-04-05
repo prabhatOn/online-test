@@ -5030,39 +5030,32 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\rajva\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "/Users/shoebiqbal/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "I:\\online-test\\online-test\\OnlineAssessment.Web\\OnlineAssessment.Web.csproj",
+      "projectUniqueName": "/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Web/OnlineAssessment.Web.csproj",
       "projectName": "OnlineAssessment.Web",
-      "projectPath": "I:\\online-test\\online-test\\OnlineAssessment.Web\\OnlineAssessment.Web.csproj",
-      "packagesPath": "C:\\Users\\rajva\\.nuget\\packages\\",
-      "outputPath": "I:\\online-test\\online-test\\OnlineAssessment.Web\\obj\\",
+      "projectPath": "/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Web/OnlineAssessment.Web.csproj",
+      "packagesPath": "/Users/shoebiqbal/.nuget/packages/",
+      "outputPath": "/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Web/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\rajva\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/Users/shoebiqbal/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "I:\\online-test\\online-test\\OnlineAssessment.Compiler\\OnlineAssessment.Compiler.csproj": {
-              "projectPath": "I:\\online-test\\online-test\\OnlineAssessment.Compiler\\OnlineAssessment.Compiler.csproj"
+            "/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Compiler/OnlineAssessment.Compiler.csproj": {
+              "projectPath": "/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Compiler/OnlineAssessment.Compiler.csproj"
             }
           }
         }
@@ -5076,8 +5069,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.200"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -5165,7 +5157,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.407/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

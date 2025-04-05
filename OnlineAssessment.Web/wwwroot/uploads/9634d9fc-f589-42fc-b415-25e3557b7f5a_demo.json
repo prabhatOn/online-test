@@ -1,0 +1,30 @@
+{
+  "questions": [
+    {
+      "text": "What is 2+2?",
+      "type": 0,
+      "testId": 3,
+      "answerOptions": [
+        {
+          "text": "3",
+          "isCorrect": false
+        },
+        {
+          "text": "4",
+          "isCorrect": true
+        }
+      ]
+    },
+    {
+      "text": "What is the capital of France?",
+      "type": 1,
+      "testId": 3,
+      "testCases": [
+        {
+          "input": "What is the capital of France?",
+          "expectedOutput": "Paris"
+        }
+      ]
+    }
+  ]
+}

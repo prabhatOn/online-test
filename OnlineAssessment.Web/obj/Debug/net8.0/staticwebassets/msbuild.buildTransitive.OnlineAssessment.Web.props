@@ -1,3 +1,3 @@
 ﻿<Project>
-  <Import Project="..\buildMultiTargeting\OnlineAssessment.Web.props" />
+  <Import Project="../buildMultiTargeting/OnlineAssessment.Web.props" />
 </Project>

@@ -383,118 +383,165 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js"></script>
     <script>
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
         require(['vs/editor/editor.main'], function() {
-            // Initialize Monaco editors for each coding question
+            // Initialize editors for each coding question
             document.querySelectorAll('.editor-container').forEach(container => {
-                const questionId = container.id.split('_')[1];
-                const questionElement = container.closest('.question-section');
-                const starterCode = questionElement.dataset.starterCode || '// Write your code here\n';
-                
+                const questionId = container.id.replace('editor_', '');
+                const questionSection = container.closest('.question-section');
+                const starterCode = questionSection.dataset.starterCode || '// Write your code here\n';
+
                 const editor = monaco.editor.create(container, {
                     value: starterCode,
                     language: 'java',
                     theme: 'vs-dark',
                     automaticLayout: true,
-                    minimap: {
-                        enabled: false
-                    },
+                    minimap: { enabled: false },
                     scrollBeyondLastLine: false,
                     fontSize: 14,
                     lineNumbers: 'on',
-                    roundedSelection: false,
-                    scrollbar: {
-                        vertical: 'visible',
-                        horizontal: 'visible',
-                        useShadows: false,
-                        verticalScrollbarSize: 10,
-                        horizontalScrollbarSize: 10
-                    }
+                    renderLineHighlight: 'all',
+                    matchBrackets: 'always',
+                    autoClosingBrackets: 'always',
+                    formatOnPaste: true,
+                    formatOnType: true,
+                    tabSize: 4,
+                    insertSpaces: true
                 });
+
+                // Store editor instance
+                window[`editor_${questionId}`] = editor;
 
                 // Update hidden input when code changes
                 editor.onDidChangeModelContent(() => {
                     const code = editor.getValue();
-                    document.querySelector(`input[name="question_${questionId}"]`).value = code;
-                });
-
-                // Store editor instance
-                container.editor = editor;
-            });
-
-            // Handle Run Code button clicks
-            document.querySelectorAll('.run-code').forEach(button => {
-                button.addEventListener('click', async function() {
-                    const questionId = this.dataset.questionId;
-                    const editor = document.querySelector(`#editor_${questionId}`).editor;
-                    const code = editor.getValue();
-                    const resultDiv = document.querySelector(`#result_${questionId}`);
-
-                    // Show loading state
-                    this.disabled = true;
-                    resultDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Running tests...</div>';
-                    resultDiv.classList.remove('d-none', 'result-success', 'result-error');
-
-                    try {
-                        const response = await fetch('/api/code/run', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                code: code,
-                                questionId: questionId,
-                                language: 'java'
-                            })
-                        });
-
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            resultDiv.innerHTML = `
-                                <div>
-                                    <h6 class="mb-2">Test Results:</h6>
-                                    <div class="mb-2">
-                                        <strong>Status:</strong> Passed
-                                    </div>
-                                    <div class="mb-2">
-                                        <strong>Runtime:</strong> ${result.runtime}ms
-                                    </div>
-                                    <div>
-                                        <strong>Memory:</strong> ${result.memory}MB
-                                    </div>
-                                </div>`;
-                            resultDiv.classList.add('result-success');
-                        } else {
-                            resultDiv.innerHTML = `
-                                <div>
-                                    <h6 class="mb-2">Test Results:</h6>
-                                    <div class="mb-2">
-                                        <strong>Status:</strong> Failed
-                                    </div>
-                                    <div>
-                                        <strong>Error:</strong>
-                                        <pre class="mt-2 mb-0"><code>${result.error}</code></pre>
-                                    </div>
-                                </div>`;
-                            resultDiv.classList.add('result-error');
-                        }
-                    } catch (error) {
-                        resultDiv.innerHTML = `
-                            <div>
-                                <h6 class="mb-2">Error:</h6>
-                                <div>Failed to run code. Please try again.</div>
-                            </div>`;
-                        resultDiv.classList.add('result-error');
+                    const hiddenInput = document.querySelector(`input[name="question_${questionId}"]`);
+                    if (hiddenInput) {
+                        hiddenInput.value = code;
                     }
-
-                    resultDiv.classList.remove('d-none');
-                    this.disabled = false;
                 });
+
+                // Set initial value in hidden input
+                const hiddenInput = document.querySelector(`input[name="question_${questionId}"]`);
+                if (hiddenInput) {
+                    hiddenInput.value = starterCode;
+                }
             });
         });
+
+        // Handle Run Code button clicks
+        document.querySelectorAll('.run-code-btn').forEach(button => {
+            button.addEventListener('click', async function() {
+                const questionId = this.dataset.questionId;
+                const editor = window[`editor_${questionId}`];
+                if (!editor) {
+                    console.error('Editor not found for question:', questionId);
+                    return;
+                }
+
+                const code = editor.getValue();
+                const resultContainer = document.getElementById(`result_${questionId}`);
+                const testCasesContainer = document.getElementById(`testCases_${questionId}`);
+
+                if (!code.trim()) {
+                    alert('Please write some code before running.');
+                    return;
+                }
+
+                // Show loading state
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+                resultContainer.className = 'test-case-result';
+                resultContainer.classList.remove('d-none');
+                resultContainer.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Running test cases...</div>';
+
+                try {
+                    const response = await fetch('/api/compiler/run', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('token')
+                        },
+                        body: JSON.stringify({
+                            code: code,
+                            language: 'java',
+                            questionId: questionId
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        resultContainer.className = 'test-case-result result-success';
+                        resultContainer.innerHTML = `
+                            <h6><i class="fas fa-check-circle"></i> All Test Cases Passed!</h6>
+                            <div class="mt-2">
+                                <strong>Output:</strong>
+                                <pre><code>${escapeHtml(result.output)}</code></pre>
+                            </div>
+                            ${result.runtime ? `<div class="mt-2"><strong>Runtime:</strong> ${result.runtime}ms</div>` : ''}
+                            ${result.memory ? `<div><strong>Memory:</strong> ${result.memory}MB</div>` : ''}
+                        `;
+
+                        // Update test cases status
+                        if (result.testCaseResults) {
+                            result.testCaseResults.forEach((testResult, index) => {
+                                const testCase = testCasesContainer.children[index];
+                                if (testCase) {
+                                    testCase.classList.remove('test-case-failed', 'test-case-passed');
+                                    testCase.classList.add(testResult.passed ? 'test-case-passed' : 'test-case-failed');
+                                }
+                            });
+                        }
+                    } else {
+                        resultContainer.className = 'test-case-result result-error';
+                        resultContainer.innerHTML = `
+                            <h6><i class="fas fa-times-circle"></i> Test Cases Failed</h6>
+                            <div class="mt-2">
+                                <strong>Error:</strong>
+                                <pre><code>${escapeHtml(result.error)}</code></pre>
+                            </div>
+                            ${result.failedTestCase ? `
+                            <div class="mt-2">
+                                <strong>Failed Test Case:</strong>
+                                <div class="test-case mt-2">
+                                    <div><strong>Input:</strong> <code>${escapeHtml(result.failedTestCase.input)}</code></div>
+                                    <div><strong>Expected:</strong> <code>${escapeHtml(result.failedTestCase.expected)}</code></div>
+                                    <div><strong>Actual:</strong> <code>${escapeHtml(result.failedTestCase.actual)}</code></div>
+                                </div>
+                            </div>` : ''}
+                        `;
+                    }
+                } catch (error) {
+                    resultContainer.className = 'test-case-result result-error';
+                    resultContainer.innerHTML = `
+                        <h6><i class="fas fa-exclamation-circle"></i> Error</h6>
+                        <div class="mt-2">
+                            <pre><code>${escapeHtml(error.message)}</code></pre>
+                        </div>
+                    `;
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-play"></i> Run Code';
+                }
+            });
+        });
+
+        // Helper function to escape HTML
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             const testForm = document.getElementById('testForm');

@@ -38,36 +38,49 @@
 {
   "codingQuestions": [
     {
-      "text": "Reverse Array",
+      "text": "Write a function to reverse a string",
       "type": 1,
-      "testId": @Model.Id,
-      "description": "An array is a data structure that stores elements of the same type in a contiguous block of memory. In an array, A, of size N, each memory location has some unique index, i (where 0 ≤ i < N), that can be referenced as A[i] or Ai.\n\nYour task is to reverse an array of integers.",
-      "functionName": "reverseArray",
+      "testId": 1,
+      "functionName": "reverseString",
+      "returnType": "String",
+      "returnDescription": "The reversed string",
+      "constraints": [
+        "0 <= s.length <= 1000",
+        "s consists of printable ASCII characters"
+      ],
+      "mainMethod": "    public static void main(String[] args) {\n        // Test Case 1\n        String s1 = \"hello\";\n        System.out.println(\"Original: \" + s1);\n        System.out.println(\"Reversed: \" + reverseString(s1));\n\n        // Test Case 2\n        String s2 = \"Shoeb\";\n        System.out.println(\"Original: \" + s2);\n        System.out.println(\"Reversed: \" + reverseString(s2));\n\n        // Test Case 3\n        String s3 = \"Java\";\n        System.out.println(\"Original: \" + s3);\n        System.out.println(\"Reversed: \" + reverseString(s3));\n\n        // Test Case 4\n        String s4 = \"\";\n        System.out.println(\"Original: \" + s4);\n        System.out.println(\"Reversed: \" + reverseString(s4));\n    }",
+      "starterCode": {
+        "java": "public static String reverseString(String s) {\n    // Write your code here\n}"
+      },
       "parameters": [
         {
-          "name": "a",
-          "type": "List<Integer>",
-          "description": "the array to reverse"
+          "name": "s",
+          "type": "String",
+          "description": "The string to reverse"
         }
-      ],
-      "returnType": "List<Integer>",
-      "returnDescription": "the reversed array",
-      "constraints": [
-        "1 ≤ N ≤ 10^3",
-        "1 ≤ A[i] ≤ 10^4, where A[i] is the i-th integer in A"
       ],
       "testCases": [
         {
-          "input": "[1, 2, 3]",
-          "expectedOutput": "[3, 2, 1]",
-          "explanation": "The array is reversed"
+          "input": "hello",
+          "expectedOutput": "Original: hello\nReversed: olleh",
+          "explanation": "Reversing 'hello' gives 'olleh'"
+        },
+        {
+          "input": "Shoeb",
+          "expectedOutput": "Original: Shoeb\nReversed: beohS",
+          "explanation": "Reversing 'Shoeb' gives 'beohS'"
+        },
+        {
+          "input": "Java",
+          "expectedOutput": "Original: Java\nReversed: avaJ",
+          "explanation": "Reversing 'Java' gives 'avaJ'"
+        },
+        {
+          "input": "",
+          "expectedOutput": "Original: \nReversed: ",
+          "explanation": "Reversing empty string gives empty string"
         }
-      ],
-      "starterCode": {
-        "java": "public static List<Integer> reverseArray(List<Integer> a) {\n    // Write your code here\n}",
-        "python": "def reverse_array(a):\n    # Write your code here\n    pass",
-        "javascript": "function reverseArray(a) {\n    // Write your code here\n}"
-      }
+      ]
     }
   ]
 }</pre>
