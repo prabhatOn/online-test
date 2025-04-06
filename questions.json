@@ -1,0 +1,46 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "title": "Sum of Two Numbers",
+      "description": "Write a function that takes two numbers as input and returns their sum.",
+      "functionName": "sum",
+      "returnType": "int",
+      "testCases": [
+        {
+          "input": [1, 2],
+          "expectedOutput": 3
+        },
+        {
+          "input": [-1, 1],
+          "expectedOutput": 0
+        },
+        {
+          "input": [0, 0],
+          "expectedOutput": 0
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Factorial",
+      "description": "Write a function that calculates the factorial of a number.",
+      "functionName": "factorial",
+      "returnType": "int",
+      "testCases": [
+        {
+          "input": [5],
+          "expectedOutput": 120
+        },
+        {
+          "input": [0],
+          "expectedOutput": 1
+        },
+        {
+          "input": [1],
+          "expectedOutput": 1
+        }
+      ]
+    }
+  ]
+} 

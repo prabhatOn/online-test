@@ -22,3 +22,4 @@ I:/online-test/online-test/OnlineAssessment.MessageQueue/obj/Debug/net8.0/ref/On
 /Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.MessageQueue/obj/Debug/net8.0/refint/OnlineAssessment.MessageQueue.dll
 /Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.MessageQueue/obj/Debug/net8.0/OnlineAssessment.MessageQueue.pdb
 /Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.MessageQueue/obj/Debug/net8.0/ref/OnlineAssessment.MessageQueue.dll
+/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.MessageQueue/obj/Debug/net8.0/OnlineAssessment.MessageQueue.csproj.AssemblyReference.cache

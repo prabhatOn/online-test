@@ -1,8 +1,50 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Online Assessment System";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h1>Welcome to Online Assessment System</h1>
+            <p class="lead">A comprehensive platform for creating and taking online tests</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">For Students</h5>
+                    <p class="card-text">Take tests and get immediate feedback on your performance.</p>
+                    <a href="/Auth/Login" class="btn btn-primary">Login</a>
+                    <a href="/Auth/Register" class="btn btn-secondary">Register</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">For Organizations</h5>
+                    <p class="card-text">Create and manage tests for your organization.</p>
+                    <a href="/Auth/Login" class="btn btn-primary">Login</a>
+                    <a href="/Auth/Register" class="btn btn-secondary">Register</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">For Administrators</h5>
+                    <p class="card-text">Manage users, organizations, and system settings.</p>
+                    <a href="/Auth/Login" class="btn btn-primary">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Add any client-side functionality here
+    </script>
+}

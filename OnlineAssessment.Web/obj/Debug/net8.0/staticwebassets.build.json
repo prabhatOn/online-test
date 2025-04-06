@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ZSwfD7w40UpTz4tuG4svqDx8idImNl5uq7LU8cAGi7w=",
+  "Hash": "nMYmOj5qmNrP7qneaRgRyS1HCTuTOf5bdmh5HhF3Kkg=",
   "Source": "OnlineAssessment.Web",
   "BasePath": "_content/OnlineAssessment.Web",
   "Mode": "Default",
@@ -1497,6 +1497,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/uploads/60b8db75-00ea-4d3d-88a9-b5b0c91127c8_questions.json"
+    },
+    {
+      "Identity": "/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Web/wwwroot/uploads/65ba440a-e332-495c-9d8b-b156fd33ec8c_questions.json",
+      "SourceId": "OnlineAssessment.Web",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Web/wwwroot/",
+      "BasePath": "_content/OnlineAssessment.Web",
+      "RelativePath": "uploads/65ba440a-e332-495c-9d8b-b156fd33ec8c_questions.json",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/65ba440a-e332-495c-9d8b-b156fd33ec8c_questions.json"
     },
     {
       "Identity": "/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Web/wwwroot/uploads/679986d5-c9bd-433c-868d-be1bd6a04f3e_questions.json",

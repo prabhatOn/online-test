@@ -105,3 +105,29 @@ Edit
 rm -rf Migrations
 dotnet ef migrations add InitialCreate
 dotnet ef database update
+
+
+Features Added 
+Compiler Service:
+Added support for multiple languages (Java, Python, C#)
+Implemented proper test case handling
+Added sandboxing using Docker
+Improved error handling and logging
+
+
+Database Structure:
+Created proper entity models
+Set up relationships between entities
+Added necessary configurations
+
+
+Project Structure:
+Added proper project references
+Updated package dependencies
+Set up Docker configuration
+
+
+Security:
+Added JWT authentication
+Implemented sandboxing for code execution
+Added proper error handling

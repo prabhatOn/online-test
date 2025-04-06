@@ -22,3 +22,6 @@ I:/online-test/online-test/OnlineAssessment.Infrastructure/obj/Debug/net8.0/ref/
 /Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Infrastructure/obj/Debug/net8.0/refint/OnlineAssessment.Infrastructure.dll
 /Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Infrastructure/obj/Debug/net8.0/OnlineAssessment.Infrastructure.pdb
 /Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Infrastructure/obj/Debug/net8.0/ref/OnlineAssessment.Infrastructure.dll
+/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Infrastructure/bin/Debug/net8.0/OnlineAssessment.Infrastructure.runtimeconfig.json
+/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Infrastructure/obj/Debug/net8.0/OnlineAssessment.Infrastructure.csproj.AssemblyReference.cache
+/Users/shoebiqbal/Desktop/onlineAssement/online-test/OnlineAssessment.Infrastructure/obj/Debug/net8.0/OnlineAssessment.Infrastructure.genruntimeconfig.cache
